@@ -1,3 +1,0 @@
-[submodule "thirdParty/mavlink"]
-	path = thirdParty/mavlink
-	url = git@github.com:pixhawk/mavlink.git
