@@ -29,7 +29,7 @@ if (SIMGEAR_FOUND AND PLIB_FOUND)
 endif()
 
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}Sources})
-add_dependencies(${PROJECT_NAME} MAVLINK)
+add_dependencies(${PROJECT_NAME} mavlink)
 target_link_libraries(${PROJECT_NAME} ${${PROJECT_NAME}Libs})
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 	VERSION ${LIBRARY_VERSION} 

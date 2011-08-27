@@ -6,9 +6,11 @@ cmake_minimum_required (VERSION 2.6)
 # global needed variables
 set(APPLICATION_NAME ${PROJECT_NAME})
 
+# set for release
 set(APPLICATION_VERSION_MAJOR "0")
 set(APPLICATION_VERSION_MINOR "0")
 set(APPLICATION_VERSION_PATCH "0")
+set(MAVSIM_TAG "master")
 
 set(APPLICATION_VERSION "${APPLICATION_VERSION_MAJOR}.${APPLICATION_VERSION_MINOR}.${APPLICATION_VERSION_PATCH}")
 set(LIBRARY_VERSION ${APPLICATION_VERSION})
@@ -28,9 +30,6 @@ set(CMAKE_MODULE_PATH
 	${CMAKE_SOURCE_DIR}/cmake/arkcmake
 )
 
-# for testing
-include (CTest)
-
 # add definitions
 include(DefineCMakeDefaults)
 include(DefinePlatformDefaults)
@@ -38,7 +37,6 @@ include(DefineCompilerFlags)
 include(DefineInstallationPaths)
 
 # cpack
-include(CPack)
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "arkTools openscenegraph module")
 set(CPACK_PACKAGE_VENDOR "arkTools")
 set(CPACK_PACKAGE_CONTACT "james.goppert@gmail.com")
@@ -72,10 +70,11 @@ Please create a separate build directory and run 'cmake /path/to/${PROJECT_NAME}
 # add macros
 include(MacroAddPlugin)
 include(MacroCopyFile)
-include(MacroFindOrBuild)
 include(MacroSetDefault)
 include(language_support_v2)
 include(MacroAddLinkFlags)
+include (CTest)
+include(ExternalProject)
 
 # settings
 option(DEV_MODE "Setup paths for developer testing." OFF)
@@ -99,28 +98,28 @@ enable_language(CXX)
 # add make dist target
 add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
-# git submodules
-if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/.git)
-	message(STATUS "git repository detected, will attempt to load submodules")
-	set(FOUND_GIT_REPO TRUE)
-	add_custom_command(OUTPUT GIT.stamp 
-		COMMAND cd ${PROJECT_SOURCE_DIR} && git submodule init ${GIT_SUBMODULES}
-		COMMAND cd ${PROJECT_SOURCE_DIR} && git submodule update ${GIT_SUBMODULES})
-	add_custom_target(GIT DEPENDS GIT.stamp)
-else()
-	set(FOUND_GIT_REPO FALSE)
-endif()
-
 # find libraries with cmake modules
 find_package(SIMGEAR)
 find_package(PLIB)
 find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
-MacroFindOrBuild(MAVLINK thirdParty/mavlink FOUND_GIT_REPO)
+find_package(MAVLINK)
 
-if(MAVLINK_BUILD_FROM_SOURCE)
-	set(MAVLINK_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/thirdParty/mavlink/include")
-	add_custom_command(OUTPUT MAVLINK_BUILD.stamp 
-		COMMAND touch MAVLINK_BUILD.stamp)
+# external projects
+set(EP_BASE_DIR "${CMAKE_BINARY_DIR}/CMakeExternals")
+set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
+
+if( NOT MAVLINK_FOUND)
+    ExternalProject_Add(mavlink
+        GIT_REPOSITORY "git://github.com/pixhawk/mavlink.git"
+		GIT_TAG ${MAVSIM_TAG}
+		CONFIGURE_COMMAND ""
+		BUILD_COMMAND ""
+		INSTALL_COMMAND ""
+		BUILD_IN_SOURCE 1
+	)
+	set(MAVLINK_FOUND TRUE)
+	set(MAVLINK_INCLUDE_DIRS ${EP_BASE_DIR}/Source/mavlink/include)
+	message(STATUS "mavlink include dirs: ${MAVLINK_INCLUDE_DIRS}")
 endif()
 
 # data directory
@@ -166,11 +165,7 @@ message(STATUS "\tPLIB\t\t${PLIB_FOUND}")
 if (PLIB_FOUND)
 endif ()
 
-
-
-
-
-message(STATUS "\tMavlink\t\t${MAVLINK_FOUND}")
+message(STATUS "\tMAVLINK\t\t${MAVLINK_FOUND}")
 if (MAVLINK_FOUND)
 endif ()
 
