@@ -79,6 +79,7 @@ include(MacroAddLinkFlags)
 
 # settings
 option(DEV_MODE "Setup paths for developer testing." OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries instead of static." OFF)
 
 # built variables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
