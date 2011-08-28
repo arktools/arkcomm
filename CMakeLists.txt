@@ -75,6 +75,7 @@ include(language_support_v2)
 include(MacroAddLinkFlags)
 include (CTest)
 include(ExternalProject)
+include(FeatureSummary)
 
 # settings
 option(DEV_MODE "Setup paths for developer testing." OFF)
