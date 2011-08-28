@@ -144,29 +144,11 @@ install(FILES
 	DESTINATION lib/pkgconfig
 	)
 
-#
-# internal library list definition / dep summary
-message(STATUS "=================================")
-message(STATUS "\tLIBRARY\t\tBUILDING")
-message(STATUS "=================================")
-
-message(STATUS "\tBoost\t\t${Boost_FOUND}")
-if (Boost_FOUND)
-endif ()
-
-message(STATUS "\tSimgear\t\t${SIMGEAR_FOUND}")
-if (SIMGEAR_FOUND)
-endif ()
-
-message(STATUS "\tPLIB\t\t${PLIB_FOUND}")
-if (PLIB_FOUND)
-endif ()
-
-message(STATUS "\tMAVLINK\t\t${MAVLINK_FOUND}")
-if (MAVLINK_FOUND)
-endif ()
-
-message(STATUS "=================================")
+# summary
+feature_summary(WHAT ENABLED_FEATURES VAR DESCRIPTION "enabled features: " VAR enabledFeaturesText)
+message(STATUS "${enabledFeaturesText}")
+feature_summary(WHAT DISABLED_FEATURES VAR DESCRIPTION "disabled features: " VAR disabledFeaturesText)
+message(STATUS "${disabledFeaturesText}")
 
 # project wide flags
 include_directories( ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
