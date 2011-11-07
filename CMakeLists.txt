@@ -30,11 +30,12 @@ set(CMAKE_MODULE_PATH
 	${CMAKE_SOURCE_DIR}/cmake/arkcmake
 )
 
-# add definitions
+# modules
 include(DefineCMakeDefaults)
 include(DefinePlatformDefaults)
 include(DefineCompilerFlags)
 include(DefineInstallationPaths)
+include(FindMAVLINK)
 
 # cpack
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "arkTools openscenegraph module")
@@ -64,21 +65,6 @@ elseif(UNIX)
 else()
     message(FATAL_ERROR "unknown operating system")
 endif()
-#if(WIN32 and not UNIX)
-  ## There is a bug in NSI that does not handle full unix paths properly. Make
-  ## sure there is at least one set of four (4) backlasshes.
-  #set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
-  #set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
-  #set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ${PROJECT_NAME}")
-  #set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.my-project-home-page.org")
-  #set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.my-personal-home-page.com")
-  #set(CPACK_NSIS_CONTACT "me@my-personal-home-page.com")
-  #set(CPACK_NSIS_MODIFY_PATH ON)
-#else(WIN32 and not UNIX)
-  #set(CPACK_STRIP_FILES "bin/MyExecutable")
-  #set(CPACK_SOURCE_STRIP_FILES "")
-#endif(WIN32 and not UNIX)
-#set(CPACK_PACKAGE_EXECUTABLES "MyExecutable" "My Executable")
 include(CPack)
 
 # disallow in-source build
@@ -117,12 +103,6 @@ enable_language(CXX)
 # add make dist target
 add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
-# find libraries with cmake modules
-find_package(SIMGEAR)
-find_package(PLIB)
-find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
-find_package(MAVLINK "${MAVLINK_VERSION}")
-
 # external projects
 set(EP_BASE_DIR "${CMAKE_BINARY_DIR}/CMakeExternals")
 set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
@@ -145,6 +125,7 @@ endif()
 set(EP_INCLUDEDIR ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}/include)
 set(EP_LIBDIR ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}/lib)
 
+
 # static lib prefix
 if(WIN32)
     set(STATIC_LIB_PREFIX "")
@@ -156,21 +137,11 @@ else()
     message(FATAL_ERROR "unknown operating system")
 endif()
 
-# external projects source build
-if( NOT MAVLINK_FOUND)
-    ExternalProject_Add(mavlink
-        GIT_REPOSITORY "git://github.com/pixhawk/mavlink.git"
-		GIT_TAG ${MAVLINK_TAG}
-        UPDATE_COMMAND ""
-        INSTALL_DIR ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EP_INSTALL_PREFIX}
-        INSTALL_COMMAND make DESTDIR=${EP_BASE_DIR} install
-	)
-    set(MAVLINK_INCLUDE_DIRS ${EP_INCLUDEDIR})
-    set(MAVLINK_DATA_DIR "")
-    set(MAVLINK_LIBRARIES "")
-    set(MAVLINK_FOUND TRUE)
-endif()
+# find libraries with cmake modules
+find_package(SIMGEAR)
+find_package(PLIB)
+find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
+find_or_build_mavlink(${MAVLINK_VERSION} ${EP_BASE_DIR} ${EP_INSTALL_PREFIX})
 
 # install required dependencies from external projects
 install(DIRECTORY ${EP_BASE_DIR}/${EP_INSTALL_PREFIX} DESTINATION ${CMAKE_INSTALL_PREFIX})
