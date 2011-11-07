@@ -2,7 +2,7 @@
 #ifndef APM_MAVLINK_BRIDGE__H
 #define APM_MAVLINK_BRIDGE__H
 
-#include "mavlink_types.h"
+#include "mavlink/mavlink_types.h"
 #include "AsyncSerial.hpp"
 
 extern BufferedAsyncSerial * mavlink_comm_0_port;

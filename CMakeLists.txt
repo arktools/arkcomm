@@ -10,7 +10,7 @@ set(APPLICATION_NAME ${PROJECT_NAME})
 set(APPLICATION_VERSION_MAJOR "0")
 set(APPLICATION_VERSION_MINOR "1")
 set(APPLICATION_VERSION_PATCH "1")
-set(MAVLINK_TAG "8d504e0b374d9020adb2a59817fee399884d6d9a")
+set(MAVLINK_VERSION "0.9.0")
 
 set(APPLICATION_VERSION "${APPLICATION_VERSION_MAJOR}.${APPLICATION_VERSION_MINOR}.${APPLICATION_VERSION_PATCH}")
 set(LIBRARY_VERSION ${APPLICATION_VERSION})
@@ -121,40 +121,59 @@ add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 find_package(SIMGEAR)
 find_package(PLIB)
 find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
-find_package(MAVLINK)
+find_package(MAVLINK "${MAVLINK_VERSION}")
 
 # external projects
 set(EP_BASE_DIR "${CMAKE_BINARY_DIR}/CMakeExternals")
 set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
+set(EP_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}-external)
 
+# install/developer mode
+if(DEV_MODE)
+    message(STATUS "configuring for in source build")
+    set(DATADIR ${PROJECT_SOURCE_DIR}/data)
+    set(LIBDIR ${CMAKE_BINARY_DIR}/lib)
+    set(BINDIR ${CMAKE_BINARY_DIR}/bin)
+    set(EP_DATADIR ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}/share)
+else()
+    message(STATUS "configuring for install build")
+    set(DATADIR ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/data)
+    set(LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
+    set(BINDIR ${CMAKE_INSTALL_PREFIX}/bin)
+    set(EP_DATADIR ${EP_INSTALL_PREFIX}/share)
+endif()
+set(EP_INCLUDEDIR ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}/include)
+set(EP_LIBDIR ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}/lib)
+
+# static lib prefix
+if(WIN32)
+    set(STATIC_LIB_PREFIX "")
+elseif(APPLE)
+    set(STATIC_LIB_PREFIX "lib")
+elseif(UNIX)
+    set(STATIC_LIB_PREFIX "lib")
+else()
+    message(FATAL_ERROR "unknown operating system")
+endif()
+
+# external projects source build
 if( NOT MAVLINK_FOUND)
     ExternalProject_Add(mavlink
         GIT_REPOSITORY "git://github.com/pixhawk/mavlink.git"
 		GIT_TAG ${MAVLINK_TAG}
-		CONFIGURE_COMMAND ""
-		BUILD_COMMAND ""
-		INSTALL_COMMAND ""
-		BUILD_IN_SOURCE 1
+        UPDATE_COMMAND ""
+        INSTALL_DIR ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EP_INSTALL_PREFIX}
+        INSTALL_COMMAND make DESTDIR=${EP_BASE_DIR} install
 	)
-	set(MAVLINK_FOUND TRUE)
-	set(MAVLINK_INCLUDE_DIRS ${EP_BASE_DIR}/Source/mavlink/include)
+    set(MAVLINK_INCLUDE_DIRS ${EP_INCLUDEDIR})
+    set(MAVLINK_DATA_DIR "")
+    set(MAVLINK_LIBRARIES "")
+    set(MAVLINK_FOUND TRUE)
 endif()
 
-# data directory
-if(DEV_MODE)
-	message(STATUS "configuring for developer build")
-	set(DATADIR ${PROJECT_SOURCE_DIR}/data)
-	set(LIBDIR ${CMAKE_BINARY_DIR}/bin)
-	set(BINDIR ${CMAKE_BINARY_DIR}/bin)
-else()
-	message(STATUS "configuring for standard build")
-	set(DATADIR ${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/data)
-	set(LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
-	set(BINDIR ${CMAKE_INSTALL_PREFIX}/bin)
-endif()
-
-# install data files
-#install(DIRECTORY "${PROJECT_SOURCE_DIR}/data" DESTINATION share/${PROJECT_NAME} PATTERN "*.git*" EXCLUDE)
+# install required dependencies from external projects
+install(DIRECTORY ${EP_BASE_DIR}/${EP_INSTALL_PREFIX} DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # pkgconfig
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc)
