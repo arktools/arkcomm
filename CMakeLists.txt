@@ -205,6 +205,8 @@ install(FILES ${${PROJECT_NAME}Headers} DESTINATION include/${PROJECT_NAME})
 
 
 #if (BUILD_TESTING)
-add_executable(mavlinkHilState test/mavlinkHilState.cpp)
-target_link_libraries(mavlinkHilState ${PROJECT_NAME} ${Boost_LIBRARIES})
+    if (MAVLINK_FOUND)
+        add_executable(mavlinkHilState test/mavlinkHilState.cpp)
+        target_link_libraries(mavlinkHilState ${PROJECT_NAME} ${Boost_LIBRARIES})
+    endif()
 #endif ()
