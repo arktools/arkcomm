@@ -1,7 +1,7 @@
 #include "AsyncSerial.hpp"
 #include <iostream>
 #include <stdexcept>
-#include <ctime>
+#include <boost/timer.hpp>
 
 // mavlink system definition and headers
 #include "mavlink/mavlink_types.h"
@@ -15,13 +15,11 @@ class MavlinkHilState {
 private:
     uint16_t count;
     uint16_t packet_drops;
-    double hilTimeStamp;
-    double time;
-    uint16_t hilRate;
     mavlink_channel_t chan;
+    boost::timer clock;
 
 public:
-    MavlinkHilState(const std::string & device, uint16_t baudRate) : count(0), packet_drops(0), hilTimeStamp(0), time(0), hilRate(50), chan(MAVLINK_COMM_0) {
+    MavlinkHilState(const std::string & device, uint32_t baudRate) : count(0), packet_drops(0), chan(MAVLINK_COMM_0), clock() {
         if (mavlink_comm_0_port == NULL)
         {
             try
@@ -31,6 +29,7 @@ public:
             catch(const boost::system::system_error & e)
             {
                 std::cout << "error: " << e.what() << std::endl;
+                exit(1);
             }
         }
     }
@@ -44,44 +43,35 @@ public:
     }
     
     void update() {
-        // send attitude message
-        if (time - hilTimeStamp > 1.0/hilRate)
-        {
-            hilTimeStamp = time;
+        // attitude states (rad)
+        float roll = 1;
+        float pitch = 2;
+        float yaw = 3;
 
-            // attitude states (rad)
-            float roll = 1;
-            float pitch = 2;
-            float yaw = 3;
+        // body rates
+        float rollRate = 0.1;
+        float pitchRate = 0.2;
+        float yawRate = 0.3;
 
-            // body rates
-            float rollRate = 0.1;
-            float pitchRate = 0.2;
-            float yawRate = 0.3;
+        // position
+        int32_t lat = 1*rad2deg*1e7;
+        int32_t lon = 2*rad2deg*1e7;
+        int16_t alt = 3*1e3;
 
-            // position
-            int32_t lat = 1*rad2deg*1e7;
-            int32_t lon = 2*rad2deg*1e7;
-            int16_t alt = 3*1e3;
+        int16_t vx = 1*1e2;
+        int16_t vy = 2*1e2;
+        int16_t vz = -3*1e2;
 
-            int16_t vx = 1*1e2;
-            int16_t vy = 2*1e2;
-            int16_t vz = -3*1e2;
+        int16_t xacc = 1*1e3;
+        int16_t yacc = 2*1e3;
+        int16_t zacc = 3*1e3;
 
-            int16_t xacc = 1*1e3;
-            int16_t yacc = 2*1e3;
-            int16_t zacc = 3*1e3;
-
-            mavlink_msg_hil_state_send(chan,hilTimeStamp,
-                                       roll,pitch,yaw,
-                                       rollRate,pitchRate,yawRate,
-                                       lat,lon,alt,
-                                       vx,vy,vz,
-                                       xacc,yacc,zacc);
-        }
-        else if (time  - hilTimeStamp < 0)
-            hilTimeStamp = time;
-
+        mavlink_msg_hil_state_send(chan,clock.elapsed(),
+                                   roll,pitch,yaw,
+                                   rollRate,pitchRate,yawRate,
+                                   lat,lon,alt,
+                                   vx,vy,vz,
+                                   xacc,yacc,zacc);
 
         // receive messages
         mavlink_message_t msg;
@@ -102,13 +92,18 @@ public:
                     //std::cout << "receiving messages" << std::endl;
                     mavlink_hil_controls_t hil_controls;
                     mavlink_msg_hil_controls_decode(&msg,&hil_controls);
-                    //y[0] = hil_controls.roll_ailerons;
-                    //y[1] = hil_controls.pitch_elevator;
-                    //y[2] = hil_controls.yaw_rudder;
-                    //y[3] = hil_controls.throttle;
-                    //y[4] = hil_controls.mode;
-                    //y[5] = hil_controls.nav_mode;
+                    std::cout << "roll: " << hil_controls.roll_ailerons << std::endl;
+                    std::cout << "pitch: " << hil_controls.pitch_elevator << std::endl;
+                    std::cout << "yaw: " << hil_controls.yaw_rudder << std::endl;
+                    std::cout << "throttle: " << hil_controls.throttle << std::endl;
+                    std::cout << "mode: " << hil_controls.mode << std::endl;
+                    std::cout << "nav mode: " << hil_controls.nav_mode << std::endl;
                     break;
+                }
+
+                default:
+                {
+                    std::cout << "received message: " << uint32_t(msg.msgid) << std::endl;
                 }
 
                 }
@@ -122,14 +117,19 @@ public:
 
 int main (int argc, char const* argv[])
 {
-    if (argc != 2) {
+    if (argc != 3) {
         std::cout << "usage: mavlinkState device baud" << std::endl;
         return 1;
     };
-    MavlinkHilState test(argv[1],atoi(argv[2])); 
+    std::string device(argv[1]);
+    uint32_t baud = atoi(argv[2]);
+
+    std::cout << "device: " << device << std::endl;
+    std::cout << "baud: " << baud << std::endl;
+    MavlinkHilState test(device,baud); 
     while(1) {
         test.update();
-        sleep(1);
+        usleep(1);
     }
     return 0;
 }

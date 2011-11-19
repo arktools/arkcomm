@@ -155,10 +155,56 @@ install(FILES
 
 # project wide flags
 include_directories( ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
+include_directories(${Boost_INCLUDE_DIRS} ${MAVLINK_INCLUDE_DIRS})
 
-# subdirectories
-add_subdirectory(src)
+# library
+set(${PROJECT_NAME}Libs ${Boost_LIBRARIES})
+
+set(${PROJECT_NAME}Sources
+	    src/AsyncSerial.cpp)
+
+set(${PROJECT_NAME}Headers
+	    src/AsyncSerial.h)
+
+if (MAVLINK_FOUND)
+	list(APPEND ${PROJECT_NAME}Sources
+	    src/asio_mavlink_bridge.cpp
+		)
+	list(APPEND ${PROJECT_NAME}Headers
+        src/AsyncSerial.hpp 
+	    src/asio_mavlink_bridge.h
+		)
+endif()
+
+if (SIMGEAR_FOUND AND PLIB_FOUND)
+	list(APPEND ${PROJECT_NAME}Sources
+		src/FlightGearComm.cpp
+		src/flightGearUtils.cpp
+		)
+	list(APPEND ${PROJECT_NAME}Headers
+		src/FlightGearComm.hpp
+		src/flightGearUtils.hpp
+		src/net_ctrls.hxx
+		src/net_fdm.hxx
+		)
+	list(APPEND ${PROJECT_NAME}Libs
+		${PLIB_LIBRARY} ${SIMGEAR_LIBRARIES} 
+		)
+endif()
+
+add_library(${PROJECT_NAME} ${${PROJECT_NAME}Sources})
+add_dependencies(${PROJECT_NAME} mavlink)
+target_link_libraries(${PROJECT_NAME} ${${PROJECT_NAME}Libs})
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+	VERSION ${LIBRARY_VERSION} 
+	SOVERSION ${LIBRARY_SOVERSION})
+
+install(TARGETS ${PROJECT_NAME} DESTINATION lib EXPORT ${PROJECT_NAME}-targets)
+install(EXPORT ${PROJECT_NAME}-targets DESTINATION lib/${PROJECT_NAME})
+install(FILES ${${PROJECT_NAME}Headers} DESTINATION include/${PROJECT_NAME})
+
 
 #if (BUILD_TESTING)
-#add_subdirectory(test)
+add_executable(mavlinkHilState test/mavlinkHilState.cpp)
+target_link_libraries(mavlinkHilState ${PROJECT_NAME} ${Boost_LIBRARIES})
 #endif ()
