@@ -159,6 +159,6 @@ include_directories( ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 # subdirectories
 add_subdirectory(src)
 
-if (BUILD_TESTING)
-	#add_subdirectory(test)
-endif ()
+#if (BUILD_TESTING)
+	add_subdirectory(test)
+#endif ()
