@@ -38,33 +38,48 @@ include(DefineInstallationPaths)
 include(FindMAVLINK)
 
 # cpack
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "arkTools openscenegraph module")
-set(CPACK_PACKAGE_VENDOR "arkTools")
-set(CPACK_PACKAGE_CONTACT "james.goppert@gmail.com")
+if(WIN32)
+	set(CPACK_GENERATOR "NSIS")
+	set(CPACK_SOURCE_GENERATOR "ZIP")
+    set(CMAKE_INSTALL_PREFIX "/usr/local")
+    # There is a bug in NSI that does not handle full unix paths properly. Make
+    # sure there is at least one set of four (4) backlasshes.
+    #set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
+    #set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\arkmath.exe")
+    set(CPACK_NSIS_DISPLAY_NAME "${PROJECT_NAME}-${APPLICATION_VERSION}")
+    set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\github.com/arktools/arkmath")
+    set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\github.com/arktools/arkmath")
+    set(CPACK_NSIS_CONTACT ${PROJECT_CONTACT_EMAIL})
+    set(CPACK_NSIS_MODIFY_PATH ON)
+else()
+    #set(CPACK_STRIP_FILES "bin/ins")
+    #set(CPACK_SOURCE_STRIP_FILES "")
+    if(APPLE)
+        set(CPACK_GENERATOR "PackageMaker")
+        set(CPACK_SOURCE_GENERATOR "TGZ")
+            elseif(UNIX)
+        set(CPACK_GENERATOR "DEB")
+        set(CPACK_SOURCE_GENERATOR "ZIP")
+    else()
+        message(FATAL_ERROR "unknown operating system")
+    endif()
+endif()
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "arkTools math module")
+set(CPACK_PACKAGE_VENDOR ${PROJECT_VENDOR})
+set(CPACK_PACKAGE_CONTACT ${PROJECT_CONTACT_EMAIL})
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
 set(CPACK_PACKAGE_VERSION_MAJOR "${APPLICATION_VERSION_MAJOR}") 
 set(CPACK_PACKAGE_VERSION_MINOR "${APPLICATION_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${APPLICATION_VERSION_PATCH}")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${PROJECT_NAME}-${APPLICATION_VERSION}")
 set(CPACK_SET_DESTDIR TRUE)
 set(CPACK_SOURCE_IGNORE_FILES ${CPACK_SOURCE_IGNORE_FILES}
 	/.git/;/build/;~$;.*\\\\.bin$;.*\\\\.swp$)
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README")
 set(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
-if(WIN32)
-    set(CPACK_GENERATOR "NSIS")
-    set(CPACK_SOURCE_GENERATOR "ZIP")
-elseif(APPLE)
-    set(CPACK_GENERATOR "PackageMaker")
-    set(CPACK_SOURCE_GENERATOR "TGZ")
-elseif(UNIX)
-    set(CPACK_GENERATOR "DEB")
-    set(CPACK_SOURCE_GENERATOR "TGZ")
-else()
-    message(FATAL_ERROR "unknown operating system")
-endif()
+#set(CPACK_PACKAGE_EXECUTABLES "MyExecutable" "My Executable")
 include(CPack)
 
 # disallow in-source build
@@ -140,7 +155,11 @@ endif()
 # find libraries with cmake modules
 find_package(SIMGEAR)
 find_package(PLIB)
-find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
+if (WIN32)
+    find_package(Boost 1.40.0 REQUIRED COMPONENTS thread_win32-mt system-mt)
+else()
+    find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
+endif()
 find_or_build_mavlink(${MAVLINK_VERSION} ${EP_BASE_DIR} ${EP_INSTALL_PREFIX})
 
 # install required dependencies from external projects
@@ -158,20 +177,23 @@ include_directories( ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 include_directories(${Boost_INCLUDE_DIRS} ${MAVLINK_INCLUDE_DIRS})
 
 # library
-set(${PROJECT_NAME}Libs ${Boost_LIBRARIES})
+if (WIN32)
+    set(${PROJECT_NAME}Libs ${Boost_LIBRARIES} ws2_32)
+else()
+    set(${PROJECT_NAME}Libs ${Boost_LIBRARIES})
+endif()
 
 set(${PROJECT_NAME}Sources
 	    src/AsyncSerial.cpp)
 
 set(${PROJECT_NAME}Headers
-	    src/AsyncSerial.h)
+	    src/AsyncSerial.hpp)
 
 if (MAVLINK_FOUND)
 	list(APPEND ${PROJECT_NAME}Sources
 	    src/asio_mavlink_bridge.cpp
 		)
 	list(APPEND ${PROJECT_NAME}Headers
-        src/AsyncSerial.hpp 
 	    src/asio_mavlink_bridge.h
 		)
 endif()
@@ -204,9 +226,10 @@ install(EXPORT ${PROJECT_NAME}-targets DESTINATION lib/${PROJECT_NAME})
 install(FILES ${${PROJECT_NAME}Headers} DESTINATION include/${PROJECT_NAME})
 
 
-#if (BUILD_TESTING)
+if (BUILD_TESTING)
     if (MAVLINK_FOUND)
+        add_definitions(-DBOOST_THREAD_USE_LIB)
         add_executable(mavlinkHilState test/mavlinkHilState.cpp)
-        target_link_libraries(mavlinkHilState ${PROJECT_NAME} ${Boost_LIBRARIES})
+        target_link_libraries(mavlinkHilState ${PROJECT_NAME} ${${PROJECT_NAME}_LIBS})
     endif()
-#endif ()
+endif ()

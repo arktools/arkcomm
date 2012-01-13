@@ -129,7 +129,7 @@ int main (int argc, char const* argv[])
     MavlinkHilState test(device,baud); 
     while(1) {
         test.update();
-        usleep(1);
+        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
     }
     return 0;
 }
