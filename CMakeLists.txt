@@ -39,6 +39,7 @@ include(FindMAVLINK)
 
 # cpack
 if(WIN32)
+    add_definitions(-D_WIN32_WINNT=0x0501) # target xp
 	set(CPACK_GENERATOR "NSIS")
 	set(CPACK_SOURCE_GENERATOR "ZIP")
     set(CMAKE_INSTALL_PREFIX "/usr/local")
@@ -100,6 +101,15 @@ include(ExternalProject)
 option(DEV_MODE "Setup paths for developer testing." OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static." OFF)
 
+if (NOT BUILD_SHARED_LIBS)
+    set(BOOST_USE_STATIC_LIBS ON)
+    if(WIN32)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    else()
+        set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+    endif()
+endif()
+
 # built variables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
@@ -155,6 +165,7 @@ endif()
 # find libraries with cmake modules
 find_package(SIMGEAR)
 find_package(PLIB)
+find_package(Threads)
 if (WIN32)
     find_package(Boost 1.40.0 REQUIRED COMPONENTS thread_win32-mt system-mt)
 else()
@@ -180,7 +191,7 @@ include_directories(${Boost_INCLUDE_DIRS} ${MAVLINK_INCLUDE_DIRS})
 if (WIN32)
     set(${PROJECT_NAME}Libs ${Boost_LIBRARIES} ws2_32)
 else()
-    set(${PROJECT_NAME}Libs ${Boost_LIBRARIES})
+    set(${PROJECT_NAME}Libs ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 set(${PROJECT_NAME}Sources
