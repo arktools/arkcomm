@@ -171,7 +171,10 @@ if (WIN32)
 else()
     find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
 endif()
-find_or_build_mavlink(${MAVLINK_VERSION} ${EP_BASE_DIR} ${EP_INSTALL_PREFIX})
+find_package(MAVLINK ${MAVLINK_VERSION})
+if (NOT MAVLINK_FOUND)
+    build_mavlink(${MAVLINK_VERSION} ${EP_BASE_DIR} ${EP_INSTALL_PREFIX} ${EP_DATADIR})
+endif()
 
 # install required dependencies from external projects
 install(DIRECTORY ${EP_BASE_DIR}/${EP_INSTALL_PREFIX} DESTINATION ${CMAKE_INSTALL_PREFIX})
