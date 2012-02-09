@@ -100,7 +100,6 @@ include(ExternalProject)
 # settings
 option(DEV_MODE "Setup paths for developer testing." OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static." OFF)
-
 if (NOT BUILD_SHARED_LIBS)
     set(BOOST_USE_STATIC_LIBS ON)
     if(WIN32)
@@ -149,18 +148,6 @@ else()
 endif()
 set(EP_INCLUDEDIR ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}/include)
 set(EP_LIBDIR ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}/lib)
-
-
-# static lib prefix
-if(WIN32)
-    set(STATIC_LIB_PREFIX "")
-elseif(APPLE)
-    set(STATIC_LIB_PREFIX "lib")
-elseif(UNIX)
-    set(STATIC_LIB_PREFIX "lib")
-else()
-    message(FATAL_ERROR "unknown operating system")
-endif()
 
 # find libraries with cmake modules
 find_package(SIMGEAR)
