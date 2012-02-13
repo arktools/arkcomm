@@ -4,9 +4,8 @@
 #include <boost/timer.hpp>
 
 // mavlink system definition and headers
-#include "mavlink/mavlink_types.h"
 #include "asio_mavlink_bridge.h"
-#include "mavlink/common/mavlink.h"
+#include <mavlink/v0.9/common/mavlink.h>
 
 static const double rad2deg = 180.0/3.14159;
 
