@@ -2,12 +2,13 @@ project (arkcomm)
 
 # settings
 cmake_minimum_required (VERSION 2.6)
-set(APPLICATION_NAME ${PROJECT_NAME})
 set(APPLICATION_VERSION_MAJOR "0")
 set(APPLICATION_VERSION_MINOR "1")
 set(APPLICATION_VERSION_PATCH "4")
 set(MAVLINK_VERSION "3eb931")
 set(LIBRARY_SOVERSION "0.0.0")
+set(PROJECT_CONTACT_EMAIL james.goppert@gmail.com)
+set(PROJECT_CONTACT_VENDOR arkTools)
 
 # modules
 set(CMAKE_MODULE_PATH
@@ -75,6 +76,9 @@ enable_language(CXX)
 find_package(SIMGEAR)
 find_package(PLIB)
 find_package(Threads)
+if (NOT BUILD_SHARED_LIBS)
+    set(BOOST_USE_STATIC_LIBS ON)
+endif()
 if (WIN32)
     find_package(Boost 1.40.0 REQUIRED COMPONENTS thread_win32-mt system-mt)
 else()
