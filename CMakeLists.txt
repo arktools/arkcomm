@@ -1,7 +1,7 @@
 project (arkcomm)
 
+# settings
 cmake_minimum_required (VERSION 2.6)
-
 set(APPLICATION_NAME ${PROJECT_NAME})
 set(APPLICATION_VERSION_MAJOR "0")
 set(APPLICATION_VERSION_MINOR "1")
@@ -14,7 +14,10 @@ set(CMAKE_MODULE_PATH
 	${CMAKE_SOURCE_DIR}/cmake
 	${CMAKE_SOURCE_DIR}/cmake/arkcmake
 )
+
+# use common setup
 include(CommonSetup)
+set(LIBRARY_VERSION ${APPLICATION_VERSION})
 
 # modules
 include(FindMAVLINK)
@@ -144,7 +147,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 install(TARGETS ${PROJECT_NAME} DESTINATION lib EXPORT ${PROJECT_NAME}-targets)
 install(EXPORT ${PROJECT_NAME}-targets DESTINATION lib/${PROJECT_NAME})
 install(FILES ${${PROJECT_NAME}Headers} DESTINATION include/${PROJECT_NAME})
-
 
 if (BUILD_TESTING)
     if (MAVLINK_FOUND)
