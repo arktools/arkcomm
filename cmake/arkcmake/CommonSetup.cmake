@@ -27,6 +27,7 @@ option(DEV_MODE "Setup paths for developer testing." OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static." OFF)
 
 if (NOT BUILD_SHARED_LIBS)
+    set(BOOST_USE_STATIC_LIBS ON)
     if(WIN32)
         set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
     else()
