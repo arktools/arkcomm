@@ -128,9 +128,13 @@ enable_language(CXX)
 add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
 # external projects
-set(EP_BASE_DIR "${CMAKE_BINARY_DIR}/CMakeExternals")
+if(NOT EP_BASE_DIR)
+    set(EP_BASE_DIR "${CMAKE_BINARY_DIR}/CMakeExternals")
+endif()
+if(NOT EP_INSTALL_PREFIX)
+    set(EP_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+endif()
 set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
-set(EP_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 
 # install/developer mode
 if(DEV_MODE)
