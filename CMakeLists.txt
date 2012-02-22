@@ -26,9 +26,10 @@ include(DefineInstallationPaths)
 include(FindMAVLINK)
 
 # settings
-set(BUILD_DEPS OFF CACHE INTERNAL "Whether are not we are building the dependencies.")
+set(BUILDING_DEPS OFF CACHE INTERNAL "Whether are not we are building the dependencies.")
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
 option(WITH_BUILD_DEPS_ALL "Build all external dependencies, even if found." OFF)
+option(WITH_BUILD_DEPS "Build external dependencies." ON)
 
 # built variables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
@@ -54,8 +55,8 @@ endif()
 add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
 # build external dependencies automatically if make found
-if ( NOT ("${CMAKE_MAKE_PROGRAM}" STREQUAL "") AND (NOT BUILD_DEPS))
-    execute_process(COMMAND ${CMAKE_COMMAND} ".." "-DBUILD_DEPS=y")
+if ( NOT ("${CMAKE_MAKE_PROGRAM}" STREQUAL "") AND (NOT BUILDING_DEPS) AND (WITH_BUILD_DEPS) )
+    execute_process(COMMAND ${CMAKE_COMMAND} ".." "-DBUILDING_DEPS=y")
     execute_process(COMMAND ${CMAKE_MAKE_PROGRAM} "-f${CMAKE_BINARY_DIR}/Makefile")
 endif()
 
@@ -71,7 +72,7 @@ endif()
 find_package(MAVLINK)
 
 # build external libraries if required
-if (BUILD_DEPS)
+if (BUILDING_DEPS)
     set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
     if (WITH_BUILD_DEPS_ALL OR (NOT MAVLINK_FOUND))
         build_mavlink(${MAVLINK_VERSION} ${EP_BASE_DIR} ${EP_INSTALL_PREFIX} ${EP_DATADIR})
