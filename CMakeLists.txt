@@ -80,7 +80,7 @@ if (BUILDING_DEPS)
             -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
             -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
         )
-        build_mavlink(${MAVLINK_VERSION} ${EP_BASE_DIR} ${CMAKE_ARGS_MAVLINK})
+        build_mavlink(${MAVLINK_VERSION} ${EP_BASE_DIR} "${CMAKE_ARGS_MAVLINK}")
     endif()
     # the return here terminates the cmake once all dependencies are built
     return()
