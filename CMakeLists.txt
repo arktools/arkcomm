@@ -24,14 +24,15 @@ include(DefinePlatformDefaults)
 include(DefineCompilerFlags)
 include(DefineInstallationPaths)
 include(FindMAVLINK)
+include(CPackPackage)
 
 # settings
-set(BUILDING_DEPS OFF CACHE INTERNAL "Whether are not we are building the dependencies.")
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
-option(WITH_BUILD_DEPS_ALL "Build all external dependencies, even if found." OFF)
+option(WITH_BUILD_DEPS_FOUND "Build all external dependencies, even if found." OFF)
 option(WITH_BUILD_DEPS "Build external dependencies." ON)
 
-# built variables
+# internal variables
+set(BUILDING_DEPS OFF CACHE INTERNAL "Whether are not we are building the dependencies.")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
@@ -74,7 +75,7 @@ find_package(MAVLINK)
 # build external libraries if required
 if (BUILDING_DEPS)
     set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
-    if (WITH_BUILD_DEPS_ALL OR (NOT MAVLINK_FOUND))
+    if (WITH_BUILD_DEPS_FOUND OR (NOT MAVLINK_FOUND))
         set(CMAKE_ARGS_MAVLINK
             -DEP_BASE_DIR=${EP_BASE_DIR}
             -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
@@ -157,6 +158,6 @@ install(EXPORT ${PROJECT_NAME}-targets DESTINATION lib/${PROJECT_NAME})
 install(FILES ${${PROJECT_NAME}Headers} DESTINATION include/${PROJECT_NAME})
 
 # install external projects, if built
-if (EXISTS ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}/)
-    install(DIRECTORY ${EP_BASE_DIR}/${EP_INSTALL_PREFIX}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
+if (EXISTS ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}/)
+    install(DIRECTORY ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
