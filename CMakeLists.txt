@@ -75,7 +75,12 @@ find_package(MAVLINK)
 if (BUILDING_DEPS)
     set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
     if (WITH_BUILD_DEPS_ALL OR (NOT MAVLINK_FOUND))
-        build_mavlink(${MAVLINK_VERSION} ${EP_BASE_DIR} ${EP_INSTALL_PREFIX} ${EP_DATADIR})
+        set(CMAKE_ARGS_MAVLINK
+            -DEP_BASE_DIR=${EP_BASE_DIR}
+            -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+        )
+        build_mavlink(${MAVLINK_VERSION} ${EP_BASE_DIR} ${CMAKE_ARGS_MAVLINK})
     endif()
     # the return here terminates the cmake once all dependencies are built
     return()
