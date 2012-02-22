@@ -1,8 +1,0 @@
-macro(find_package_prefer_static ${ARGS})
-    if(WIN32)
-        set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
-    else()
-        set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
-    endif()
-    find_package("${ARGS}")
-endmacro()
