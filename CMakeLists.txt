@@ -45,8 +45,8 @@ if (WITH_BUILD_DEPS AND ROOT_THREAD)
         "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
         "-DWITH_BUILD_DEPS=${WITH_BUILD_STATIC}"
         "-DWITH_BUILD_STATIC=${WITH_BUILD_STATIC}"
-        "-DWITH_GUI=${WITH_GUI}"
-        "-DWITH_ARKOSG=${WITH_ARKOSG}"
+        "-DWITH_MAVLINK=${WITH_MAVLINK}"
+        "-DWITH_FLIGHTGEAR=${WITH_FLIGHTGEAR}"
         "-DROOT_THREAD=FALSE"
         RESULT_VARIABLE ERROR)
     if (ERROR)
@@ -168,7 +168,7 @@ if (SIMGEAR_FOUND AND PLIB_FOUND)
         )
 endif()
 
-add_library(arkcommShared ${arkcommSources})
+add_library(arkcommShared SHARED ${arkcommSources})
 add_dependencies(arkcommShared mavlink)
 set_target_properties(arkcommShared PROPERTIES 
     OUTPUT_NAME arkcomm
@@ -181,7 +181,7 @@ set_target_properties(arkcommShared PROPERTIES
 target_link_libraries(arkcommShared ${arkcommLibs})
 list(APPEND INSTALLED_TARGETS arkcommShared)
 
-add_library(arkcommStatic ${arkcommSources})
+add_library(arkcommStatic STATIC ${arkcommSources})
 add_dependencies(arkcommStatic mavlink)
 set_target_properties(arkcommStatic PROPERTIES 
     OUTPUT_NAME arkcomm
@@ -200,9 +200,7 @@ if (WITH_TESTS)
 endif()
 
 # install libraries
-install(TARGETS arkcomm DESTINATION lib EXPORT arkcomm-targets)
-install(EXPORT arkcomm-targets DESTINATION lib/arkcomm)
-install(FILES ${arkcommHeaders} DESTINATION include/arkcomm)
+install(FILES ${arkcommHeaders} DESTINATION include/arkcomm COMPONENT Dev)
 
 # install
 install(TARGETS  ${INSTALLED_TARGETS}
@@ -222,16 +220,7 @@ if (EXISTS ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}/)
     install(DIRECTORY ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
 
-### packaging
-# set icns file containing icons
-if (APPLE)
-    # set how it shows up in Info.plist
-    set(MACOSX_BUNDLE_ICON_FILE jsbsim.icns)
-    # set where in the bundle to put the icns file
-    set_source_files_properties(cmake/jsbsim.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    # include the icns file in the target
-    list(APPEND JSBSIMGUI_SRCS cmake/jsbsim.icns)
-endif(APPLE)
+# packaging
 
 # set NSIS image
 if (WIN32)
@@ -244,7 +233,7 @@ configure_file("README" "README.txt" COPYONLY)
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_BINARY_DIR}/COPYING.txt")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_BINARY_DIR}/README.txt")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CPACK_RESOURCE_FILE_README}")
-set(CPACK_RESOURCE_FILE_WELCOME "cmake/WELCOME.txt")
+set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_SOURCE_DIR}/cmake/WELCOME.txt")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "arktools communication library")
 set(CPACK_PACKAGE_VENDOR ${PROJECT_CONTACT_VENDOR})
 set(CPACK_PACKAGE_CONTACT "${PROJECT_CONTACT_EMAIL}")
