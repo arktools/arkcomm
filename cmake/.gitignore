@@ -10,3 +10,5 @@ arkcmake/*
 !arkcmake/autobuild.py
 !arkcmake/get_build_path.py
 !arkcmake/FindMAVLINK.cmake
+!arkcmake/LibFindMacros.cmake
+!arkcmake/MacroCommonPaths.cmake
