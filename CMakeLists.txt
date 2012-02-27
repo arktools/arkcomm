@@ -217,7 +217,7 @@ install(TARGETS  ${INSTALLED_TARGETS}
 
 # install external projects, if built
 if (EXISTS ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}/)
-    install(DIRECTORY ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}/ DESTINATION ${CMAKE_INSTALL_PREFIX})
+    install(DIRECTORY ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}/ DESTINATION ${CMAKE_INSTALL_PREFIX} COMPONENT Runtime)
 endif()
 
 # packaging
@@ -243,9 +243,9 @@ set(CPACK_COMPONENTS_GROUPING "ALL_COMPONENTS_IN_ONE")
 include(CPack)
 
 # pkgconfig
-configure_file(pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/arkcomm.pc)
+configure_file(pc.cmake arkcomm.pc)
 install(FILES
     ${PROJECT_BINARY_DIR}/arkcomm.pc
-    DESTINATION lib/pkgconfig
+    DESTINATION lib/pkgconfig COMPONENT Dev
     )
 # vim:sw=4:ts=4:expandtab
