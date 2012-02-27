@@ -9,4 +9,4 @@ arkcmake/*
 !arkcmake/updateArkcmake.py
 !arkcmake/autobuild.py
 !arkcmake/get_build_path.py
-!arkcmake/FindMAVLink.cmake
+!arkcmake/FindMAVLINK.cmake
