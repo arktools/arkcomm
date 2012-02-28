@@ -14,16 +14,6 @@ set(LIBRARY_SOVERSION "0.0.0")
 # third party
 set(MAVLINK_VERSION "3eb931ac38b94854aa47483739cb1e4492e9120a")
 
-# options
-option(WITH_BUILD_DEPS "Build dependencies." ON)
-option(WITH_BUILD_STATIC "Prefer static linking." ON)
-option(WITH_MAVLINK "Build with mavlink support." ON)
-option(WITH_FLIGHTGEAR "Build with flightgear support." ON)
-
-# variables
-set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
-set(INSTALLED_TARGETS "")
-
 # modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/arkcmake)
 include(BundleUtilities)
@@ -37,6 +27,17 @@ include(CheckLibraryExists)
 #include(CheckCSourceCompiles)
 include(ExternalProject)
 include(FindMAVLINK)
+
+# options
+option(WITH_BUILD_DEPS "Build dependencies." ON)
+option(WITH_BUILD_STATIC "Prefer static linking." ON)
+option(WITH_MAVLINK "Build with mavlink support." ON)
+option(WITH_FLIGHTGEAR "Build with flightgear support." ON)
+option(WITH_TESTS "Build tests." ON)
+
+# variables
+set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
+set(INSTALLED_TARGETS "")
 
 # spawn new cmake to build deps
 if (WITH_BUILD_DEPS AND ROOT_THREAD)
@@ -82,8 +83,8 @@ else()
     find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
 endif()
 if (WITH_FLIGHTGEAR)
-    find_package(SIMGEAR)
-    find_package(PLIB)
+    find_package(SIMGEAR REQUIRED)
+    find_package(PLIB REQUIRED)
 endif()
 find_package(Threads)
 find_package(MAVLINK)
@@ -125,9 +126,8 @@ check_function_exists(bcopy HAVE_BCOPY)
 # config files
 configure_file(config.h.in config.h)
 
-
 # project wide flags
-include_directories( ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
+include_directories(src ${CMAKE_BINARY_DIR})
 include_directories(${Boost_INCLUDE_DIRS} ${MAVLINK_INCLUDE_DIRS})
 
 # library
@@ -164,7 +164,7 @@ if (SIMGEAR_FOUND AND PLIB_FOUND)
         src/net_fdm.hxx
         )
     list(APPEND arkcommLibs
-        ${PLIB_LIBRARY} ${SIMGEAR_LIBRARIES} 
+        ${PLIB_LIBRARIES} ${SIMGEAR_LIBRARIES} 
         )
 endif()
 
@@ -190,12 +190,31 @@ set_target_properties(arkcommStatic PROPERTIES
 target_link_libraries(arkcommStatic ${arkcommLibs})
 list(APPEND INSTALLED_TARGETS arkcommStatic)
 
+include_directories(thirdParty thirdParty/flightgear/MultiPlayer src)
+
+add_library(fgMultiPlayer STATIC 
+    thirdParty/flightgear/MultiPlayer/mpmessages.hxx
+    thirdParty/flightgear/MultiPlayer/tiny_xdr.cxx
+    thirdParty/flightgear/MultiPlayer/tiny_xdr.hxx
+    src/multiplaymgr.hxx
+    src/multiplaymgr.cxx
+
+    src/simgear/debug/debug_types.h
+    src/simgear/debug/logstream.hxx
+    src/simgear/debug/logstream.cxx
+    )
+target_link_libraries(fgMultiPlayer ${PLIB_LIBRARIES} ${SIMGEAR_LIBRARIES})
+
 # test programs
 if (WITH_TESTS)
     if (MAVLINK_FOUND)
         add_definitions(-DBOOST_THREAD_USE_LIB)
         add_executable(mavlinkHilState test/mavlinkHilState.cpp)
         target_link_libraries(mavlinkHilState arkcomm ${arkcomm_LIBS})
+    endif()
+    if (WITH_FLIGHTGEAR)
+        add_executable(fgMultiPlayerTest test/fgMultiPlayer.cpp)
+        target_link_libraries(fgMultiPlayerTest fgMultiPlayer ${SIMGEAR_LIBRARIES} ${PLIB_LIBRIES})
     endif()
 endif()
 

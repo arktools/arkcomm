@@ -1,70 +1,90 @@
-# Locate plib
-# This module defines
-# PLIB_LIBRARY
-# PLIB_FOUND, if false, do not try to link to plib
-# PLIB_INCLUDE_DIR, where to find the headers
+# - Try to find  PLIB
+# Once done, this will define
 #
-# $PLIB_DIR is an environment variable that would
-# correspond to the ./configure --prefix=$PLIB_DIR
-#
-# Created David Guthrie with code by Robert Osfield. 
+#  PLIB_FOUND - system has scicoslab 
+#  PLIB_INCLUDE_DIRS - the scicoslab include directories
+#  PLIB_LIBRARIES - libraries to link to
 
-FIND_PATH(PLIB_INCLUDE_DIR plib/js.h
-    $ENV{PLIB_DIR}/include
-    $ENV{PLIB_DIR}
-    $ENV{PLIB_ROOT}/include
-    ${DELTA3D_EXT_DIR}/inc
-    $ENV{DELTA_ROOT}/ext/inc
-    ~/Library/Frameworks
-    /Library/Frameworks
-    /usr/local/include
-    /usr/include
-    /sw/include # Fink
-    /opt/local/include # DarwinPorts
-    /opt/csw/include # Blastwave
-    /opt/include
-    [HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session\ Manager\\Environment;PLIB_ROOT]/include
-    /usr/freeware/include
+include(LibFindMacros)
+include(MacroCommonPaths)
+
+MacroCommonPaths(PLIB)
+
+# Include dir
+find_path(PLIB_INCLUDE_DIR
+	NAMES plib/net.h
+	PATHS ${COMMON_INCLUDE_PATHS_PLIB}
 )
 
-MACRO(FIND_PLIB_LIBRARY MYLIBRARY MYLIBRARYNAMES)
+# the library itself
+find_library(PLIB_FNT_LIBRARY
+	NAMES plibfnt
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_JS_LIBRARY
+	NAMES plibjs
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_NET_LIBRARY
+	NAMES plibnet
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_PSL_LIBRARY
+	NAMES plibpsl
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_PU_LIBRARY
+	NAMES plibpu
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_PUAUX_LIBRARY
+	NAMES plibpuaux
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_PW_LIBRARY
+	NAMES plibpw
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_SG_LIBRARY
+	NAMES plibsg
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_SL_LIBRARY
+	NAMES plibsl
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_SM_LIBRARY
+	NAMES plibsm
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_SSG_LIBRARY
+	NAMES plibssg
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_SSGAUX_LIBRARY
+	NAMES plibssgaux
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
+find_library(PLIB_UL_LIBRARY
+	NAMES plibul
+	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
+)
 
-    FIND_LIBRARY(${MYLIBRARY}
-        NAMES ${MYLIBRARYNAMES}
-        PATHS
-        $ENV{PLIB_DIR}/lib
-        $ENV{PLIB_DIR}
-        $ENV{OSGDIR}/lib
-        $ENV{OSGDIR}
-        $ENV{PLIB_ROOT}/lib
-        ${DELTA3D_EXT_DIR}/lib
-        $ENV{DELTA_ROOT}/ext/lib
-        ~/Library/Frameworks
-        /Library/Frameworks
-        /usr/local/lib
-        /usr/lib
-        /sw/lib
-        /opt/local/lib
-        /opt/csw/lib
-        /opt/lib
-        [HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session\ Manager\\Environment;PLIB_ROOT]/lib
-        /usr/freeware/lib64
+# Set the include dir variables and the libraries and let libfind_process do the rest.
+# NOTE: Singular variables for this library, plural for libraries this this lib depends on.
+set(PLIB_PROCESS_INCLUDES PLIB_INCLUDE_DIR)
+set(PLIB_PROCESS_LIBS
+    PLIB_FNT_LIBRARY
+    PLIB_JS_LIBRARY
+    PLIB_NET_LIBRARY
+    PLIB_PSL_LIBRARY
+    PLIB_PU_LIBRARY
+    PLIB_PUAUX_LIBRARY
+    PLIB_SG_LIBRARY
+    PLIB_SL_LIBRARY
+    PLIB_SM_LIBRARY
+    PLIB_SSG_LIBRARY
+    PLIB_SSGAUX_LIBRARY
+    PLIB_UL_LIBRARY
     )
-
-ENDMACRO(FIND_PLIB_LIBRARY MYLIBRARY MYLIBRARYNAMES)
-
-SET(PLIB_RELEASE_JS_LIB_NAMES js plibjs)
-SET(PLIB_RELEASE_UL_LIB_NAMES ul plibul)
-SET(PLIB_DEBUG_JS_LIB_NAMES js_d plibjs_d)
-SET(PLIB_DEBUG_UL_LIB_NAMES ul_d plibul_d)
-
-
-FIND_PLIB_LIBRARY(PLIB_JS_LIBRARY "${PLIB_RELEASE_JS_LIB_NAMES}")
-FIND_PLIB_LIBRARY(PLIB_JS_LIBRARY_DEBUG "${PLIB_DEBUG_JS_LIB_NAMES}")
-FIND_PLIB_LIBRARY(PLIB_UL_LIBRARY "${PLIB_RELEASE_UL_LIB_NAMES}")
-FIND_PLIB_LIBRARY(PLIB_UL_LIBRARY_DEBUG "${PLIB_DEBUG_UL_LIB_NAMES}")
-
-SET(PLIB_FOUND "NO")
-IF(PLIB_JS_LIBRARY AND PLIB_INCLUDE_DIR)
-    SET(PLIB_FOUND "YES")
-ENDIF(PLIB_JS_LIBRARY AND PLIB_INCLUDE_DIR)
+libfind_process(PLIB)
