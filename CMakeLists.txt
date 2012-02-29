@@ -19,6 +19,7 @@ option(WITH_BUILD_DEPS "Build dependencies." ON)
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
 option(WITH_MAVLINK "Build with mavlink support." ON)
 option(WITH_FLIGHTGEAR "Build with flightgear support." ON)
+option(WITH_TESTS "Build tests." OFF)
 
 # variables
 set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
@@ -125,6 +126,10 @@ check_function_exists(bcopy HAVE_BCOPY)
 # config files
 configure_file(config.h.in config.h)
 
+# build settings
+if (MINGW)
+    add_definitions(-D_WIN32_WINNT=0x0501)
+endif()
 
 # project wide flags
 include_directories( ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
@@ -195,7 +200,7 @@ if (WITH_TESTS)
     if (MAVLINK_FOUND)
         add_definitions(-DBOOST_THREAD_USE_LIB)
         add_executable(mavlinkHilState test/mavlinkHilState.cpp)
-        target_link_libraries(mavlinkHilState arkcomm ${arkcomm_LIBS})
+        target_link_libraries(mavlinkHilState arkcommStatic ${arkcommLIBS})
     endif()
 endif()
 
