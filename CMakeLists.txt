@@ -14,6 +14,17 @@ set(LIBRARY_SOVERSION "0.0.0")
 # third party
 set(MAVLINK_VERSION "3eb931ac38b94854aa47483739cb1e4492e9120a")
 
+# variables
+set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
+set(INSTALLED_TARGETS "")
+
+# options
+option(WITH_BUILD_DEPS "Build dependencies." ON)
+option(WITH_BUILD_STATIC "Prefer static linking." ON)
+option(WITH_MAVLINK "Build with mavlink support." ON)
+option(WITH_FLIGHTGEAR "Build with flightgear support." OFF)
+option(WITH_TESTS "Build tests." OFF)
+
 # modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/arkcmake)
 include(BundleUtilities)
@@ -28,13 +39,6 @@ include(CheckLibraryExists)
 include(ExternalProject)
 include(FindMAVLINK)
 
-# options
-option(WITH_BUILD_DEPS "Build dependencies." ON)
-option(WITH_BUILD_STATIC "Prefer static linking." ON)
-option(WITH_MAVLINK "Build with mavlink support." ON)
-option(WITH_FLIGHTGEAR "Build with flightgear support." ON)
-option(WITH_TESTS "Build tests." ON)
-
 # variables
 set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
 set(INSTALLED_TARGETS "")
@@ -44,10 +48,11 @@ if (WITH_BUILD_DEPS AND ROOT_THREAD)
     execute_process(COMMAND ${CMAKE_COMMAND} "${CMAKE_SOURCE_DIR}"
         "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
         "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
-        "-DWITH_BUILD_DEPS=${WITH_BUILD_STATIC}"
+        "-DWITH_BUILD_DEPS=${WITH_BUILD_DEPS}"
         "-DWITH_BUILD_STATIC=${WITH_BUILD_STATIC}"
         "-DWITH_MAVLINK=${WITH_MAVLINK}"
         "-DWITH_FLIGHTGEAR=${WITH_FLIGHTGEAR}"
+        "-DWITH_TESTS=${WITH_TESTS}"
         "-DROOT_THREAD=FALSE"
         RESULT_VARIABLE ERROR)
     if (ERROR)
@@ -125,6 +130,11 @@ check_function_exists(bcopy HAVE_BCOPY)
 
 # config files
 configure_file(config.h.in config.h)
+
+# build settings
+if (MINGW)
+    add_definitions(-D_WIN32_WINNT=0x0501)
+endif()
 
 # project wide flags
 include_directories(src ${CMAKE_BINARY_DIR})
@@ -210,7 +220,7 @@ if (WITH_TESTS)
     if (MAVLINK_FOUND)
         add_definitions(-DBOOST_THREAD_USE_LIB)
         add_executable(mavlinkHilState test/mavlinkHilState.cpp)
-        target_link_libraries(mavlinkHilState arkcomm ${arkcomm_LIBS})
+        target_link_libraries(mavlinkHilState arkcommStatic ${arkcommLIBS})
     endif()
     if (WITH_FLIGHTGEAR)
         add_executable(fgMultiPlayerTest test/fgMultiPlayer.cpp)
