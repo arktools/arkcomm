@@ -87,8 +87,13 @@ if (WITH_FLIGHTGEAR)
     find_package(SIMGEAR REQUIRED)
     find_package(PLIB REQUIRED)
 endif()
-find_package(Threads)
-find_package(MAVLINK)
+find_package(Threads REQUIRED)
+
+if (ROOT_THREAD)
+    find_package(MAVLINK REQUIRED)
+else()
+    find_package(MAVLINK)
+endif()
 
 # build dependencies
 if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
