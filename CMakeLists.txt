@@ -14,16 +14,16 @@ set(LIBRARY_SOVERSION "0.0.0")
 # third party
 set(MAVLINK_VERSION "3eb931ac38b94854aa47483739cb1e4492e9120a")
 
-# variables
-set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
-set(INSTALLED_TARGETS "")
-
 # options
 option(WITH_BUILD_DEPS "Build dependencies." ON)
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
 option(WITH_MAVLINK "Build with mavlink support." ON)
 option(WITH_FLIGHTGEAR "Build with flightgear support." OFF)
 option(WITH_TESTS "Build tests." OFF)
+
+# variables
+set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
+set(INSTALLED_TARGETS "")
 
 # modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/arkcmake)
@@ -39,13 +39,10 @@ include(CheckLibraryExists)
 include(ExternalProject)
 include(FindMAVLINK)
 
-# variables
-set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
-set(INSTALLED_TARGETS "")
-
 # spawn new cmake to build deps
 if (WITH_BUILD_DEPS AND ROOT_THREAD)
     execute_process(COMMAND ${CMAKE_COMMAND} "${CMAKE_SOURCE_DIR}"
+        "-DROOT_THREAD=n"
         "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
         "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
         "-DWITH_BUILD_DEPS=${WITH_BUILD_DEPS}"
@@ -53,7 +50,6 @@ if (WITH_BUILD_DEPS AND ROOT_THREAD)
         "-DWITH_MAVLINK=${WITH_MAVLINK}"
         "-DWITH_FLIGHTGEAR=${WITH_FLIGHTGEAR}"
         "-DWITH_TESTS=${WITH_TESTS}"
-        "-DROOT_THREAD=FALSE"
         RESULT_VARIABLE ERROR)
     if (ERROR)
         message(FATAL_ERROR "error, recursing loop returned error code: ${ERROR}")
@@ -140,11 +136,10 @@ endif()
 include_directories(src ${CMAKE_BINARY_DIR})
 include_directories(${Boost_INCLUDE_DIRS} ${MAVLINK_INCLUDE_DIRS})
 
-# library
-if (WIN32)
-    set(arkcommLibs ${Boost_LIBRARIES} ws2_32)
-else()
-    set(arkcommLibs ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+# librarys
+set(arkcommLibs ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+if (MINGW)
+    list(APPEND arkcommLibs ws2_32)
 endif()
 
 set(arkcommSources
@@ -178,19 +173,6 @@ if (SIMGEAR_FOUND AND PLIB_FOUND)
         )
 endif()
 
-add_library(arkcommShared SHARED ${arkcommSources})
-add_dependencies(arkcommShared mavlink)
-set_target_properties(arkcommShared PROPERTIES 
-    OUTPUT_NAME arkcomm
-    VERSION ${LIBRARY_VERSION} 
-    SOVERSION ${LIBRARY_SOVERSION}
-    FRAMEWORK ON
-    PUBLIC_HEADERS ${ARKCOMM_PUBLIC_HDRS}
-    PRIVATE_HEADERS ${ARKCOMM_PRIVATE_HDRS}
-    )
-target_link_libraries(arkcommShared ${arkcommLibs})
-list(APPEND INSTALLED_TARGETS arkcommShared)
-
 add_library(arkcommStatic STATIC ${arkcommSources})
 add_dependencies(arkcommStatic mavlink)
 set_target_properties(arkcommStatic PROPERTIES 
@@ -200,25 +182,41 @@ set_target_properties(arkcommStatic PROPERTIES
 target_link_libraries(arkcommStatic ${arkcommLibs})
 list(APPEND INSTALLED_TARGETS arkcommStatic)
 
+if (NOT MINGW) # currently shared library doesn't build on mingw
+    add_library(arkcommShared SHARED ${arkcommSources})
+    add_dependencies(arkcommShared mavlink)
+    set_target_properties(arkcommShared PROPERTIES 
+        OUTPUT_NAME arkcomm
+        VERSION ${LIBRARY_VERSION} 
+        SOVERSION ${LIBRARY_SOVERSION}
+        FRAMEWORK ON
+        PUBLIC_HEADERS ${ARKCOMM_PUBLIC_HDRS}
+        PRIVATE_HEADERS ${ARKCOMM_PRIVATE_HDRS}
+        )
+    target_link_libraries(arkcommShared arkcommStatic ${arkcommLibs})
+    list(APPEND INSTALLED_TARGETS arkcommShared)
+endif()
+
 include_directories(thirdParty thirdParty/flightgear/MultiPlayer src)
 
-add_library(fgMultiPlayer STATIC 
-    thirdParty/flightgear/MultiPlayer/mpmessages.hxx
-    thirdParty/flightgear/MultiPlayer/tiny_xdr.cxx
-    thirdParty/flightgear/MultiPlayer/tiny_xdr.hxx
-    src/multiplaymgr.hxx
-    src/multiplaymgr.cxx
+if (WITH_FLIGHTGEAR)
+    add_library(fgMultiPlayer STATIC 
+        thirdParty/flightgear/MultiPlayer/mpmessages.hxx
+        thirdParty/flightgear/MultiPlayer/tiny_xdr.cxx
+        thirdParty/flightgear/MultiPlayer/tiny_xdr.hxx
+        src/multiplaymgr.hxx
+        src/multiplaymgr.cxx
 
-    src/simgear/debug/debug_types.h
-    src/simgear/debug/logstream.hxx
-    src/simgear/debug/logstream.cxx
-    )
-target_link_libraries(fgMultiPlayer ${PLIB_LIBRARIES} ${SIMGEAR_LIBRARIES})
+        src/simgear/debug/debug_types.h
+        src/simgear/debug/logstream.hxx
+        src/simgear/debug/logstream.cxx
+        )
+    target_link_libraries(fgMultiPlayer ${PLIB_LIBRARIES} ${SIMGEAR_LIBRARIES})
+endif()
 
 # test programs
 if (WITH_TESTS)
     if (MAVLINK_FOUND)
-        add_definitions(-DBOOST_THREAD_USE_LIB)
         add_executable(mavlinkHilState test/mavlinkHilState.cpp)
         target_link_libraries(mavlinkHilState arkcommStatic ${arkcommLIBS})
     endif()
