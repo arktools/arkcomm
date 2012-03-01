@@ -12,7 +12,7 @@ set(LIBRARY_VERSION ${PROJECT_VERSION})
 set(LIBRARY_SOVERSION "0.0.0")
 
 # third party
-set(MAVLINK_VERSION "3eb931ac38b94854aa47483739cb1e4492e9120a")
+set(MAVLINK_VERSION "d36d790e5988901f1e38865a65b6eb07c6a735fa")
 
 # options
 option(WITH_BUILD_DEPS "Build dependencies." ON)
@@ -135,6 +135,7 @@ configure_file(config.h.in config.h)
 # build settings
 if (MINGW)
     add_definitions(-D_WIN32_WINNT=0x0501)
+    add_definitions(-DBOOST_THREAD_USE_LIB)
 endif()
 
 # project wide flags
@@ -178,6 +179,7 @@ if (SIMGEAR_FOUND AND PLIB_FOUND)
         )
 endif()
 
+# static library
 add_library(arkcommStatic STATIC ${arkcommSources})
 add_dependencies(arkcommStatic mavlink)
 set_target_properties(arkcommStatic PROPERTIES 
@@ -187,24 +189,23 @@ set_target_properties(arkcommStatic PROPERTIES
 target_link_libraries(arkcommStatic ${arkcommLibs})
 list(APPEND INSTALLED_TARGETS arkcommStatic)
 
-if (NOT MINGW) # currently shared library doesn't build on mingw
-    add_library(arkcommShared SHARED ${arkcommSources})
-    add_dependencies(arkcommShared mavlink)
-    set_target_properties(arkcommShared PROPERTIES 
-        OUTPUT_NAME arkcomm
-        VERSION ${LIBRARY_VERSION} 
-        SOVERSION ${LIBRARY_SOVERSION}
-        FRAMEWORK ON
-        PUBLIC_HEADERS ${ARKCOMM_PUBLIC_HDRS}
-        PRIVATE_HEADERS ${ARKCOMM_PRIVATE_HDRS}
-        )
-    target_link_libraries(arkcommShared arkcommStatic ${arkcommLibs})
-    list(APPEND INSTALLED_TARGETS arkcommShared)
-endif()
+# shared library
+add_library(arkcommShared SHARED ${arkcommSources})
+add_dependencies(arkcommShared mavlink)
+set_target_properties(arkcommShared PROPERTIES 
+    OUTPUT_NAME arkcomm
+    VERSION ${LIBRARY_VERSION} 
+    SOVERSION ${LIBRARY_SOVERSION}
+    FRAMEWORK ON
+    PUBLIC_HEADERS ${ARKCOMM_PUBLIC_HDRS}
+    PRIVATE_HEADERS ${ARKCOMM_PRIVATE_HDRS}
+    )
+target_link_libraries(arkcommShared arkcommStatic ${arkcommLibs})
+list(APPEND INSTALLED_TARGETS arkcommShared)
 
-include_directories(thirdParty thirdParty/flightgear/MultiPlayer src)
-
+# flightgear multiplayer library
 if (WITH_FLIGHTGEAR)
+    include_directories(thirdParty thirdParty/flightgear/MultiPlayer src)
     add_library(fgMultiPlayer STATIC 
         thirdParty/flightgear/MultiPlayer/mpmessages.hxx
         thirdParty/flightgear/MultiPlayer/tiny_xdr.cxx
