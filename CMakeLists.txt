@@ -12,14 +12,14 @@ set(LIBRARY_VERSION ${PROJECT_VERSION})
 set(LIBRARY_SOVERSION "0.0.0")
 
 # third party
-set(MAVLINK_VERSION "d36d790e5988901f1e38865a65b6eb07c6a735fa")
+set(MAVLINK_VERSION "68bef8e3de04b5c5fe2cbdf2a26cd6db89e04454") # 1.0.1
 
 # options
 option(WITH_BUILD_DEPS "Build dependencies." ON)
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
 option(WITH_MAVLINK "Build with mavlink support." ON)
-option(WITH_FLIGHTGEAR "Build with flightgear support." OFF)
-option(WITH_TESTS "Build tests." OFF)
+option(WITH_FLIGHTGEAR "Build with flightgear support." ON)
+option(WITH_TESTS "Build tests." ON)
 
 # variables
 set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
@@ -212,10 +212,6 @@ if (WITH_FLIGHTGEAR)
         thirdParty/flightgear/MultiPlayer/tiny_xdr.hxx
         src/multiplaymgr.hxx
         src/multiplaymgr.cxx
-
-        src/simgear/debug/debug_types.h
-        src/simgear/debug/logstream.hxx
-        src/simgear/debug/logstream.cxx
         )
     target_link_libraries(fgMultiPlayer ${PLIB_LIBRARIES} ${SIMGEAR_LIBRARIES})
 endif()
