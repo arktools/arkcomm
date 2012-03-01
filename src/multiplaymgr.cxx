@@ -384,11 +384,17 @@ FGMultiplayMgr::init (void)
   //////////////////////////////////////////////////
   //  Set members from property values
   //////////////////////////////////////////////////
-  short rxPort = fgGetInt("/sim/multiplay/rxport");
-  string rxAddress = fgGetString("/sim/multiplay/rxhost");
-  short txPort = fgGetInt("/sim/multiplay/txport");
-  string txAddress = fgGetString("/sim/multiplay/txhost");
-  mCallsign = fgGetString("/sim/multiplay/callsign");
+  //short rxPort = fgGetInt("/sim/multiplay/rxport");
+  //string rxAddress = fgGetString("/sim/multiplay/rxhost");
+  //short txPort = fgGetInt("/sim/multiplay/txport");
+  //string txAddress = fgGetString("/sim/multiplay/txhost");
+  //mCallsign = fgGetString("/sim/multiplay/callsign");
+  short rxPort = 5007;
+  string rxAddress = "192.168.1.107";
+  short txPort = 5000;
+  string txAddress = "192.168.1.101";
+  mCallsign = "hsl-1";
+
   if (txPort > 0 && !txAddress.empty()) {
     mServer.set(txAddress.c_str(), txPort);
     if (strncmp (mServer.getHost(), "0.0.0.0", 8) == 0) {
@@ -430,6 +436,8 @@ FGMultiplayMgr::init (void)
     return false;
   }
   mInitialised = true;
+
+  std::cout << "initialized successfully!!!!!!!" << std::endl;
   return true;
 } // FGMultiplayMgr::init()
 //////////////////////////////////////////////////////////////////////
@@ -608,6 +616,7 @@ escape:
 
   mSocket->sendto(Msg, ptr - Msg, 0, &mServer);
   SG_LOG(SG_NETWORK, SG_DEBUG, "FGMultiplayMgr::SendMyPosition");
+  std::cout << "sending my position" << std::endl;
 } // FGMultiplayMgr::SendMyPosition()
 //////////////////////////////////////////////////////////////////////
 
@@ -644,6 +653,7 @@ FGMultiplayMgr::SendTextMessage(const string &MsgText)
     memcpy (Msg + sizeof(T_MsgHdr), &ChatMsg, sizeof(T_ChatMsg));
     mSocket->sendto (Msg, sizeof(T_MsgHdr) + sizeof(T_ChatMsg), 0, &mServer);
     iNextBlockPosition += MAX_CHAT_MSG_LEN - 1;
+    std::cout << "sending chat message" << std::endl;
 
   }
   
@@ -663,6 +673,7 @@ FGMultiplayMgr::Update(void)
 {
   if (!mInitialised)
     return;
+  std::cout << "have been initialized" << std::endl;
 
   /// Just for expiry
   SGTimeStamp timestamper;
@@ -687,6 +698,7 @@ FGMultiplayMgr::Update(void)
     //  no Data received
     //////////////////////////////////////////////////
     if (bytes <= 0) {
+        std::cout << " no data received" << std::endl;
       if (errno != EAGAIN && errno != 0) // MSVC output "NoError" otherwise
         perror("FGMultiplayMgr::MP_ProcessData");
       break;
@@ -938,7 +950,7 @@ FGMultiplayMgr::ProcessChatMsg(const char *Msg, netAddress& SenderAddress)
   T_ChatMsg* ChatMsg = (T_ChatMsg *)(Msg + sizeof(T_MsgHdr));
   SG_LOG (SG_NETWORK, SG_ALERT, "Chat [" << MsgHdr->Callsign << "]"
            << " " << MsgBuf);
-
+  std::cout << "received chat message" << std::endl;
   delete [] MsgBuf;
 } // FGMultiplayMgr::ProcessChatMsg ()
 //////////////////////////////////////////////////////////////////////
