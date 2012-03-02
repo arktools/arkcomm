@@ -88,7 +88,7 @@ public:
   
   FGMultiplayMgr();
   ~FGMultiplayMgr();
-  bool init(void);
+  bool init (const short rxPort, const string rxAddress, const short txPort, const string txAddress, const string callsign ) ;
   void Close(void);
   // transmitter
   void SendMyPosition(const FGExternalMotionData& motionInfo);

@@ -205,13 +205,15 @@ list(APPEND INSTALLED_TARGETS arkcommShared)
 
 # flightgear multiplayer library
 if (WITH_FLIGHTGEAR)
-    include_directories(thirdParty thirdParty/flightgear/MultiPlayer src)
+    include_directories(thirdParty thirdParty/flightgear/MultiPlayer thirdParty/flightgear src)
     add_library(fgMultiPlayer STATIC 
         thirdParty/flightgear/MultiPlayer/mpmessages.hxx
         thirdParty/flightgear/MultiPlayer/tiny_xdr.cxx
         thirdParty/flightgear/MultiPlayer/tiny_xdr.hxx
         src/multiplaymgr.hxx
         src/multiplaymgr.cxx
+        src/multiplay.hxx
+        src/multiplay.cxx
         )
     target_link_libraries(fgMultiPlayer ${PLIB_LIBRARIES} ${SIMGEAR_LIBRARIES})
 endif()

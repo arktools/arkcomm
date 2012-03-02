@@ -1,29 +1,19 @@
-#include "multiplaymgr.hxx"
+#include "multiplay.hxx"
 #include <iostream>
 #include <vector>
 
 int main (int argc, char const* argv[])
 {
-    std::vector<FGPropertyData*> properties;
-    FGExternalMotionData data;
-    data.angularVel = SGVec3f(0,0,0);
-    data.angularVel = SGVec3f(0,0,0);
-    data.lag = 0;
-    data.linearAccel = SGVec3f(0,0,0);
-    data.linearVel = SGVec3f(0,0,0);
-    data.orientation = SGQuatf(1,0,0,0);
-    data.position = SGVec3d(0,0,0);
-    data.properties = properties;
-    data.time = 0;
-
     FGMultiplayMgr manager;
-    manager.init();
+    manager.init(5007,"192.168.1.107",5000,"mpserver05.flightgear.org","hsl-3");
+    FGMultiplay mp(&manager,"out",10,"mpserver05.flightgear.org",5000);
+    mp.set_Latitude(37.62);
+    mp.set_Longitude(-122.39);
+    mp.set_Altitude(1000);
     while(1) {
-        manager.Update();
-        std::cout << "updating" << std::endl;
+        mp.process();
         usleep(100000);
-        manager.SendTextMessage("hello"); 
-        manager.SendMyPosition(data);
+        //manager.SendTextMessage("hello"); 
     }
     return 0;
 }
