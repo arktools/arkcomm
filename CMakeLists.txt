@@ -80,6 +80,10 @@ if (WITH_BUILD_STATIC)
 endif()
 
 # find libraries with cmake modules
+set(REQUIRED_IF_ROOT_THREAD)
+if (ROOT_THREAD)
+    set(REQUIRED_IF_ROOT_THREAD "REQUIRED")
+endif()
 if (WIN32)
     find_package(Boost 1.40.0 REQUIRED COMPONENTS thread_win32-mt system-mt)
 else()
@@ -90,12 +94,7 @@ if (WITH_FLIGHTGEAR)
     find_package(PLIB REQUIRED)
 endif()
 find_package(Threads REQUIRED)
-
-if (ROOT_THREAD)
-    find_package(MAVLINK REQUIRED)
-else()
-    find_package(MAVLINK)
-endif()
+find_package(MAVLINK ${REQUIRED_IF_ROOT_THREAD})
 
 # build dependencies
 if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
