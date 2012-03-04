@@ -109,7 +109,14 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
         )
 
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
-        build_mavlink(${MAVLINK_VERSION} ${EP_BASE_DIR} "${CMAKE_DEFAULT_ARGS}")
+        ExternalProject_Add(arkosg
+            GIT_REPOSITORY "git://github.com/mavlink/mavlink.git"
+            GIT_TAG ${TAG}
+            UPDATE_COMMAND ""
+            INSTALL_DIR ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
+            INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_BASE_DIR} install
+           )
     endif()
 
     # terminate non root cmake thread

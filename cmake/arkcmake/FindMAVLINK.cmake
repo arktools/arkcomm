@@ -19,14 +19,3 @@ find_path(MAVLINK_INCLUDE_DIR
 # NOTE: Singular variables for this library, plural for libraries this this lib depends on.
 set(MAVLINK_PROCESS_INCLUDES MAVLINK_INCLUDE_DIR)
 libfind_process(MAVLINK)
-
-macro(build_mavlink TAG EP_BASE_DIR CMAKE_ARGS)
-    ExternalProject_Add(mavlink
-        GIT_REPOSITORY "git://github.com/mavlink/mavlink.git"
-        GIT_TAG ${TAG}
-        UPDATE_COMMAND ""
-        INSTALL_DIR ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}
-        CMAKE_ARGS ${CMAKE_ARGS}
-        INSTALL_COMMAND make DESTDIR=${EP_BASE_DIR} install
-    )
-endmacro()
