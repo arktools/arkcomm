@@ -19,7 +19,8 @@ option(WITH_BUILD_DEPS "Build dependencies." ON)
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
 option(WITH_MAVLINK "Build with mavlink support." ON)
 option(WITH_FLIGHTGEAR "Build with flightgear support." ON)
-option(WITH_TESTS "Build tests." ON)
+option(WITH_BUILD_SHARED "Build the shared library." OFF)
+option(WITH_BUILD_TESTS "Build tests." OFF)
 
 # variables
 set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
@@ -50,7 +51,7 @@ if (WITH_BUILD_DEPS AND ROOT_THREAD)
         "-DWITH_BUILD_STATIC=${WITH_BUILD_STATIC}"
         "-DWITH_MAVLINK=${WITH_MAVLINK}"
         "-DWITH_FLIGHTGEAR=${WITH_FLIGHTGEAR}"
-        "-DWITH_TESTS=${WITH_TESTS}"
+        "-DWITH_BUILD_TESTS=${WITH_BUILD_TESTS}"
         RESULT_VARIABLE ERROR)
     if (ERROR)
         message(FATAL_ERROR "error, recursing loop returned error code: ${ERROR}")
@@ -109,7 +110,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
         )
 
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
-        ExternalProject_Add(arkosg
+        ExternalProject_Add(mavlink
             GIT_REPOSITORY "git://github.com/mavlink/mavlink.git"
             GIT_TAG ${TAG}
             UPDATE_COMMAND ""
@@ -198,9 +199,10 @@ target_link_libraries(arkcommStatic ${arkcommLibs})
 list(APPEND INSTALLED_TARGETS arkcommStatic)
 
 # shared library
-add_library(arkcommShared SHARED ${arkcommSources})
-add_dependencies(arkcommShared mavlink)
-set_target_properties(arkcommShared PROPERTIES 
+if (BUILD_SHARED)
+    add_library(arkcommShared SHARED ${arkcommSources})
+    add_dependencies(arkcommShared mavlink)
+    set_target_properties(arkcommShared PROPERTIES 
     OUTPUT_NAME arkcomm
     VERSION ${LIBRARY_VERSION} 
     SOVERSION ${LIBRARY_SOVERSION}
@@ -208,8 +210,9 @@ set_target_properties(arkcommShared PROPERTIES
     PUBLIC_HEADERS ${ARKCOMM_PUBLIC_HDRS}
     PRIVATE_HEADERS ${ARKCOMM_PRIVATE_HDRS}
     )
-target_link_libraries(arkcommShared arkcommStatic ${arkcommLibs})
-list(APPEND INSTALLED_TARGETS arkcommShared)
+    target_link_libraries(arkcommShared arkcommStatic ${arkcommLibs})
+    list(APPEND INSTALLED_TARGETS arkcommShared)
+endif()
 
 # flightgear multiplayer library
 if (WITH_FLIGHTGEAR)
@@ -227,7 +230,7 @@ if (WITH_FLIGHTGEAR)
 endif()
 
 # test programs
-if (WITH_TESTS)
+if (WITH_BUILD_TESTS)
     if (MAVLINK_FOUND)
         add_executable(mavlinkHilState test/mavlinkHilState.cpp)
         target_link_libraries(mavlinkHilState arkcommStatic ${arkcommLIBS})
