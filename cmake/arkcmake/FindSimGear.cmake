@@ -45,19 +45,15 @@ include(FindPackageHandleStandardArgs)
 # find the include directory
 find_path(_SIMGEAR_INCLUDE_DIR
 	NAMES simgear/version.h
-    )
-
-# find the library
-find_library(_SIMGEAR_LIBRARY
-	NAMES simgear
+    PATHS /usr/local
     )
 
 # find the data directory
 find_path(SIMGEAR_DATADIR
 	NAMES simgear/VERSION
     PATH_SUFFIXES share
+    PATHS /usr/local
     )
-
 
 # read the version
 if (EXISTS ${_SIMGEAR_INCLUDE_DIR}/version.h)
@@ -76,6 +72,7 @@ foreach(component ${SimGear_FIND_COMPONENTS})
     string(TOLOWER ${component} component_lc) 
     find_library(SIMGEAR_${component_uc}
         NAMES sg${component_lc}
+        PATHS /usr/local
         )
     list(APPEND SIMGEAR_LIBRARIES ${SIMGEAR_${component_uc}})
 endforeach()

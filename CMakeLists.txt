@@ -129,7 +129,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
             GIT_REPOSITORY "git://gitorious.org/plib/plib.git"
             GIT_TAG ${PLIB_TAG}
             UPDATE_COMMAND ""
-            CONFIGURE_COMMAND ./autogen.sh && ./configure ${PLIB_CROSS_CONFIG}
+            CONFIGURE_COMMAND ./autogen.sh ${PLIB_CROSS_CONFIG}
             BUILD_COMMAND ${CMAKE_MAKE_COMMAND}
             INSTALL_DIR ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
@@ -137,7 +137,6 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
             BUILD_IN_SOURCE 1
            )
     endif()
-
 
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProject_Add(simgear
