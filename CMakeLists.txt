@@ -14,6 +14,7 @@ set(LIBRARY_SOVERSION "0.0.0")
 # third party
 set(MAVLINK_TAG "68bef8e3de04b5c5fe2cbdf2a26cd6db89e04454") # 1.0.1
 set(SIMGEAR_TAG "4e32cd6d108373c7f112b9a1140483cd0e62ecf5") # 2.4.0
+set(PLIB_TAG "0e45bd21fee09a490ac020f3e9a7b9cf468ef0e5") # latest
 
 # options
 option(WITH_BUILD_DEPS "Build dependencies." ON)
@@ -89,8 +90,8 @@ else()
     find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
 endif()
 if (WITH_FLIGHTGEAR)
-    find_package(SimGear REQUIRED COMPONENTS io math timing debug)
-    find_package(PLIB REQUIRED COMPONENTS net)
+    find_package(SimGear ${REQUIRED_IF_ROOT_THREAD} COMPONENTS io math timing debug)
+    find_package(PLIB ${REQUIRED_IF_ROOT_THREAD} COMPONENTS net)
 endif()
 find_package(Threads REQUIRED)
 find_package(MAVLink ${REQUIRED_IF_ROOT_THREAD})
@@ -118,18 +119,37 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
            )
     endif()
 
-    if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
+    if (WITH_FLIGHTGEAR AND (NOT PLIB_FOUND))
+        if (MINGW)
+            set(PLIB_CROSS_CONFIG "--host=i686-pc-mingw32" "--prefix=/usr/local/share/mingw-cross-env")
+        else()
+            set(PLIB_CROSS_CONFIG "")
+        endif()
+        ExternalProject_Add(plib
+            GIT_REPOSITORY "git://gitorious.org/plib/plib.git"
+            GIT_TAG ${PLIB_TAG}
+            UPDATE_COMMAND ""
+            CONFIGURE_COMMAND ./autogen.sh && ./configure ${PLIB_CROSS_CONFIG}
+            BUILD_COMMAND ${CMAKE_MAKE_COMMAND}
+            INSTALL_DIR ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
+            INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_BASE_DIR} install
+            BUILD_IN_SOURCE 1
+           )
+    endif()
 
+
+    if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProject_Add(simgear
             GIT_REPOSITORY "git://gitorious.org/fg/simgear.git"
             GIT_TAG ${SIMGEAR_TAG}
             UPDATE_COMMAND ""
             INSTALL_DIR ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}
-            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=1"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_BASE_DIR} install
            )
+       add_dependencies(simgear plib)
     endif()
-
 
     # terminate non root cmake thread
     return()
@@ -202,7 +222,7 @@ endif()
 
 # static library
 add_library(arkcommStatic STATIC ${arkcommSources})
-add_dependencies(arkcommStatic mavlink simgear)
+add_dependencies(arkcommStatic mavlink simgear plib)
 set_target_properties(arkcommStatic PROPERTIES 
     OUTPUT_NAME arkcomm
     VERSION ${LIBRARY_VERSION} 
@@ -215,7 +235,7 @@ install(TARGETS arkcommStatic
 # shared library
 if (BUILD_SHARED)
     add_library(arkcommShared SHARED ${arkcommSources})
-    add_dependencies(arkcommShared mavlink simgear)
+    add_dependencies(arkcommShared mavlink simgear plib)
     set_target_properties(arkcommShared PROPERTIES 
     OUTPUT_NAME arkcomm
     VERSION ${LIBRARY_VERSION} 
@@ -264,9 +284,7 @@ endif()
 
 # install headers
 install(FILES ${arkcommHeaders} DESTINATION include/arkcomm COMPONENT Dev)
-
-# install data files
-install(FILES ${CMAKE_BINARY_DIR}/VERSION DESTINATION share/arkcomm COMPONENT Runtime)
+install(FILES ${CMAKE_BINARY_DIR}/VERSION DESTINATION include/arkcomm COMPONENT Dev)
 
 # packaging
 if (WIN32)
