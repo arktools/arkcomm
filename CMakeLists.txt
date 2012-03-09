@@ -12,7 +12,8 @@ set(LIBRARY_VERSION ${PROJECT_VERSION})
 set(LIBRARY_SOVERSION "0.0.0")
 
 # third party
-set(MAVLINK_VERSION "68bef8e3de04b5c5fe2cbdf2a26cd6db89e04454") # 1.0.1
+set(MAVLINK_TAG "68bef8e3de04b5c5fe2cbdf2a26cd6db89e04454") # 1.0.1
+set(SIMGEAR_TAG "4e32cd6d108373c7f112b9a1140483cd0e62ecf5") # 2.4.0
 
 # options
 option(WITH_BUILD_DEPS "Build dependencies." ON)
@@ -24,7 +25,6 @@ option(WITH_BUILD_TESTS "Build tests." OFF)
 
 # variables
 set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
-set(INSTALLED_TARGETS "")
 
 # modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/arkcmake)
@@ -38,7 +38,6 @@ include(CheckLibraryExists)
 #include(CheckCXXSourceCompiles)
 #include(CheckCSourceCompiles)
 include(ExternalProject)
-include(FindMAVLINK)
 
 # spawn new cmake to build deps
 if (WITH_BUILD_DEPS AND ROOT_THREAD)
@@ -90,11 +89,11 @@ else()
     find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
 endif()
 if (WITH_FLIGHTGEAR)
-    find_package(SIMGEAR REQUIRED)
-    find_package(PLIB REQUIRED)
+    find_package(SimGear REQUIRED COMPONENTS io math timing debug)
+    find_package(PLIB REQUIRED COMPONENTS net)
 endif()
 find_package(Threads REQUIRED)
-find_package(MAVLINK ${REQUIRED_IF_ROOT_THREAD})
+find_package(MAVLink ${REQUIRED_IF_ROOT_THREAD})
 
 # build dependencies
 if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
@@ -111,13 +110,26 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
         ExternalProject_Add(mavlink
             GIT_REPOSITORY "git://github.com/mavlink/mavlink.git"
-            GIT_TAG ${TAG}
+            GIT_TAG ${MAVLINK_TAG}
             UPDATE_COMMAND ""
             INSTALL_DIR ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_BASE_DIR} install
            )
     endif()
+
+    if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
+
+        ExternalProject_Add(simgear
+            GIT_REPOSITORY "git://gitorious.org/fg/simgear.git"
+            GIT_TAG ${SIMGEAR_TAG}
+            UPDATE_COMMAND ""
+            INSTALL_DIR ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
+            INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_BASE_DIR} install
+           )
+    endif()
+
 
     # terminate non root cmake thread
     return()
@@ -139,6 +151,7 @@ check_function_exists(bcopy HAVE_BCOPY)
 
 # config files
 configure_file(config.h.in config.h)
+configure_file(VERSION.in VERSION)
 
 # build settings
 if (MINGW)
@@ -189,18 +202,20 @@ endif()
 
 # static library
 add_library(arkcommStatic STATIC ${arkcommSources})
-add_dependencies(arkcommStatic mavlink)
+add_dependencies(arkcommStatic mavlink simgear)
 set_target_properties(arkcommStatic PROPERTIES 
     OUTPUT_NAME arkcomm
     VERSION ${LIBRARY_VERSION} 
     )
 target_link_libraries(arkcommStatic ${arkcommLibs})
-list(APPEND INSTALLED_TARGETS arkcommStatic)
+install(TARGETS arkcommStatic
+    ARCHIVE DESTINATION "lib" COMPONENT Dev
+    )
 
 # shared library
 if (BUILD_SHARED)
     add_library(arkcommShared SHARED ${arkcommSources})
-    add_dependencies(arkcommShared mavlink)
+    add_dependencies(arkcommShared mavlink simgear)
     set_target_properties(arkcommShared PROPERTIES 
     OUTPUT_NAME arkcomm
     VERSION ${LIBRARY_VERSION} 
@@ -210,7 +225,14 @@ if (BUILD_SHARED)
     PRIVATE_HEADERS ${ARKCOMM_PRIVATE_HDRS}
     )
     target_link_libraries(arkcommShared arkcommStatic ${arkcommLibs})
-    list(APPEND INSTALLED_TARGETS arkcommShared)
+    install(TARGETS arkcommShared
+        LIBRARY DESTINATION "lib" COMPONENT Runtime
+        FRAMEWORK DESTINATION "/Library/Frameworks" COMPONENT Runtime
+        # where to put files on non-mac computers, mac overrides and uses default
+        PRIVATE_HEADER DESTINATION "include/jsbsim" COMPONENT Runtime
+        PUBLIC_HEADER DESTINATION "include/jsbsim" COMPONENT Runtime
+        RESOURCE DESTINATION "share/jsbsim" COMPONENT Runtime
+        )
 endif()
 
 # flightgear multiplayer library
@@ -240,36 +262,18 @@ if (WITH_BUILD_TESTS)
     endif()
 endif()
 
-# install libraries
+# install headers
 install(FILES ${arkcommHeaders} DESTINATION include/arkcomm COMPONENT Dev)
 
-# install
-install(TARGETS  ${INSTALLED_TARGETS}
-    RUNTIME DESTINATION "bin" COMPONENT Runtime
-    LIBRARY DESTINATION "lib" COMPONENT Runtime
-    ARCHIVE DESTINATION "lib" COMPONENT Dev
-    BUNDLE DESTINATION "/Applications" COMPONENT Runtime
-    FRAMEWORK DESTINATION "/Library/Frameworks" COMPONENT Runtime
-    # where to put files on non-mac computers, mac overrides and uses default
-    PRIVATE_HEADER DESTINATION "include/jsbsim" COMPONENT Runtime
-    PUBLIC_HEADER DESTINATION "include/jsbsim" COMPONENT Runtime
-    RESOURCE DESTINATION "share/jsbsim" COMPONENT Runtime
-    )
-
-# install external projects, if built
-if (EXISTS ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}/)
-    install(DIRECTORY ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}/ DESTINATION ${CMAKE_INSTALL_PREFIX} COMPONENT Runtime)
-endif()
+# install data files
+install(FILES ${CMAKE_BINARY_DIR}/VERSION DESTINATION share/arkcomm COMPONENT Runtime)
 
 # packaging
-
-# set NSIS image
 if (WIN32)
+    # set NSIS image
     set(CPACK_PACKAGE_ICON "\\\\/cmake/jsbsim-nsis.bmp")
 endif(WIN32)
-
-# add file extensions and set resource files
-configure_file("COPYING" "COPYING.txt" COPYONLY)
+configure_file("COPYING" "COPYING.txt" COPYONLY) # add file extensions and set resource files
 configure_file("README" "README.txt" COPYONLY)
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_BINARY_DIR}/COPYING.txt")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_BINARY_DIR}/README.txt")

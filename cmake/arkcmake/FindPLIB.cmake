@@ -1,90 +1,81 @@
 # - Try to find  PLIB
 # Once done, this will define
 #
-#  PLIB_FOUND - system has scicoslab 
-#  PLIB_INCLUDE_DIRS - the scicoslab include directories
-#  PLIB_LIBRARIES - libraries to link to
+#  PLIB_FOUND        : library found
+#  PLIB_INCLUDE_DIRS : include directories
+#  PLIB_LIBRARIES    : libraries to link to
+#  PLIB_VERSION      : version
+#
+# when listing components, list in the order below
+# to ensure proper static linking
+#
+# core compoennts:
+#        comps
+#        environment
+#        nasal
+#        tsync
+#        bucket
+#        route
+#        io
+#        serial
+#        math
+#        props
+#        structure
+#        timing
+#        xml
+#        misc
+#        threads
+#        debug
+#        magvar
+#
+# scene components:
+#        ephem
+#        sky
+#        material
+#        tgdb
+#        model
+#        screen
+#        bvh
+#        util
+#        sound
 
-include(LibFindMacros)
-include(MacroCommonPaths)
+# macros
+include(FindPackageHandleStandardArgs)
 
-MacroCommonPaths(PLIB)
-
-# Include dir
-find_path(PLIB_INCLUDE_DIR
-	NAMES plib/net.h
-	PATHS ${COMMON_INCLUDE_PATHS_PLIB}
-)
-
-# the library itself
-find_library(PLIB_FNT_LIBRARY
-	NAMES plibfnt
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_JS_LIBRARY
-	NAMES plibjs
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_NET_LIBRARY
-	NAMES plibnet
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_PSL_LIBRARY
-	NAMES plibpsl
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_PU_LIBRARY
-	NAMES plibpu
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_PUAUX_LIBRARY
-	NAMES plibpuaux
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_PW_LIBRARY
-	NAMES plibpw
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_SG_LIBRARY
-	NAMES plibsg
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_SL_LIBRARY
-	NAMES plibsl
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_SM_LIBRARY
-	NAMES plibsm
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_SSG_LIBRARY
-	NAMES plibssg
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_SSGAUX_LIBRARY
-	NAMES plibssgaux
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-find_library(PLIB_UL_LIBRARY
-	NAMES plibul
-	PATHS ${COMMON_LIBRARY_PATHS_PLIB}
-)
-
-# Set the include dir variables and the libraries and let libfind_process do the rest.
-# NOTE: Singular variables for this library, plural for libraries this this lib depends on.
-set(PLIB_PROCESS_INCLUDES PLIB_INCLUDE_DIR)
-set(PLIB_PROCESS_LIBS
-    PLIB_FNT_LIBRARY
-    PLIB_JS_LIBRARY
-    PLIB_NET_LIBRARY
-    PLIB_PSL_LIBRARY
-    PLIB_PU_LIBRARY
-    PLIB_PUAUX_LIBRARY
-    PLIB_SG_LIBRARY
-    PLIB_SL_LIBRARY
-    PLIB_SM_LIBRARY
-    PLIB_SSG_LIBRARY
-    PLIB_SSGAUX_LIBRARY
-    PLIB_UL_LIBRARY
+# find the include directory
+find_path(_PLIB_INCLUDE_DIR
+	NAMES plib/ul.h
     )
-libfind_process(PLIB)
+
+# read the version
+if (EXISTS ${_PLIB_INCLUDE_DIR}/ul.h)
+    file(READ ${_PLIB_DATADIR}/ul.h PLIB_VERSION_FILE)
+    string(REGEX MATCH "^# define PLIB_MAJOR_VERSION.*([0-9])")
+    set(_PLIB_MAJOR_VERSION ${CMAKE_MATCH_0})
+    string(REGEX MATCH "^# define PLIB_MINOR_VERSION.*([0-9])")
+    set(_PLIB_MINOR_VERSION ${CMAKE_MATCH_0})
+    string(REGEX MATCH "^# define PLIB_TINY_VERSION.*([0-9])")
+    set(_PLIB_TINY_VERSION ${CMAKE_MATCH_0})
+    set(PLIB_VERSION "${PLIB_MAJOR_VERSION}.${PLIB_MINOR_VERSION}.${PLIB_TINY_VERSION}")
+endif()
+
+# find components
+set(PLIB_LIBRARIES "")
+if ("${PLIB_FIND_COMPONENTS}" STREQUAL "")
+    message(FATAL_ERROR "FindPLIB: must specify a plib library as a component.")
+endif()
+foreach(component ${PLIB_FIND_COMPONENTS})
+    string(TOUPPER ${component} component_uc) 
+    string(TOLOWER ${component} component_lc) 
+    find_library(PLIB_${component_uc}
+        NAMES plib${component_lc}
+        )
+    list(APPEND PLIB_LIBRARIES ${PLIB_${component_uc}})
+endforeach()
+
+# handle arguments
+set(PLIB_INCLUDE_DIRS ${_PLIB_INCLUDE_DIR})
+find_package_handle_standard_args(PLIB
+    REQUIRED_VARS PLIB_LIBRARIES PLIB_INCLUDE_DIRS
+    VERSION_VAR PLIB_VERSION
+    )

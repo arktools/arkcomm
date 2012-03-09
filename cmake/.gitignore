@@ -1,11 +1,8 @@
 # only keep relevant arkcmake files
 arkcmake/*
-!arkcmake/MacroEnsureOutOfSourceBuild.cmake
-!arkcmake/MacroCommonPaths.cmake
-!arkcmake/LibFindMacros.cmake
 !arkcmake/updateArkcmake.py
 !arkcmake/autobuild.py
 !arkcmake/get_build_path.py
-!arkcmake/FindMAVLINK.cmake
+!arkcmake/FindMAVLink.cmake
 !arkcmake/FindPLIB.cmake
-!arkcmake/FindSIMGEAR.cmake
+!arkcmake/FindSimGear.cmake
