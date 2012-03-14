@@ -44,20 +44,21 @@ include(FindPackageHandleStandardArgs)
 
 # find the include directory
 find_path(_PLIB_INCLUDE_DIR
-	NAMES plib/ul.h
+	NAMES plib/plib.h
+    PATHS /usr/local
     )
 
 # read the version
-if (EXISTS ${_PLIB_INCLUDE_DIR}/ul.h)
-    file(READ ${_PLIB_DATADIR}/ul.h PLIB_VERSION_FILE)
-    string(REGEX MATCH "^# define PLIB_MAJOR_VERSION.*([0-9])")
-    set(_PLIB_MAJOR_VERSION ${CMAKE_MATCH_0})
-    string(REGEX MATCH "^# define PLIB_MINOR_VERSION.*([0-9])")
-    set(_PLIB_MINOR_VERSION ${CMAKE_MATCH_0})
-    string(REGEX MATCH "^# define PLIB_TINY_VERSION.*([0-9])")
-    set(_PLIB_TINY_VERSION ${CMAKE_MATCH_0})
-    set(PLIB_VERSION "${PLIB_MAJOR_VERSION}.${PLIB_MINOR_VERSION}.${PLIB_TINY_VERSION}")
-endif()
+#if (EXISTS ${_PLIB_INCLUDE_DIR}/version.h)
+    #file(READ ${_PLIB_DATADIR}/version.h PLIB_VERSION_FILE)
+    #string(REGEX MATCH "^# define PLIB_MAJOR_VERSION.*([0-9])")
+    #set(_PLIB_MAJOR_VERSION ${CMAKE_MATCH_0})
+    #string(REGEX MATCH "^# define PLIB_MINOR_VERSION.*([0-9])")
+    #set(_PLIB_MINOR_VERSION ${CMAKE_MATCH_0})
+    #string(REGEX MATCH "^# define PLIB_TINY_VERSION.*([0-9])")
+    #set(_PLIB_TINY_VERSION ${CMAKE_MATCH_0})
+    #set(PLIB_VERSION "${PLIB_MAJOR_VERSION}.${PLIB_MINOR_VERSION}.${PLIB_TINY_VERSION}")
+#endif()
 
 # find components
 set(PLIB_LIBRARIES "")
@@ -68,7 +69,8 @@ foreach(component ${PLIB_FIND_COMPONENTS})
     string(TOUPPER ${component} component_uc) 
     string(TOLOWER ${component} component_lc) 
     find_library(PLIB_${component_uc}
-        NAMES plib${component_lc}
+        NAMES plib${component_lc} libplib${component_lc}.a
+        PATHS /usr/local
         )
     list(APPEND PLIB_LIBRARIES ${PLIB_${component_uc}})
 endforeach()
@@ -77,5 +79,5 @@ endforeach()
 set(PLIB_INCLUDE_DIRS ${_PLIB_INCLUDE_DIR})
 find_package_handle_standard_args(PLIB
     REQUIRED_VARS PLIB_LIBRARIES PLIB_INCLUDE_DIRS
-    VERSION_VAR PLIB_VERSION
+    #VERSION_VAR PLIB_VERSION
     )

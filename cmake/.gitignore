@@ -6,3 +6,4 @@ arkcmake/*
 !arkcmake/FindMAVLink.cmake
 !arkcmake/FindPLIB.cmake
 !arkcmake/FindSimGear.cmake
+!arkcmake/ExternalProjectWithFilename.cmake

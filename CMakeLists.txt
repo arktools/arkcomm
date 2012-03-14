@@ -38,7 +38,7 @@ include(CheckLibraryExists)
 #include(CheckPrototypeExists)
 #include(CheckCXXSourceCompiles)
 #include(CheckCSourceCompiles)
-include(ExternalProject)
+include(ExternalProjectWithFilename)
 
 # spawn new cmake to build deps
 if (WITH_BUILD_DEPS AND ROOT_THREAD)
@@ -65,7 +65,9 @@ endif()
 if(NOT EP_BASE_DIR)
     set(EP_BASE_DIR "${CMAKE_BINARY_DIR}/CMakeExternals")
 endif()
-list(APPEND CMAKE_FIND_ROOT_PATH ${EP_BASE_DIR})
+set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
+set(EP_INSTALL_DIR "${EP_BASE_DIR}/Install")
+list(APPEND CMAKE_FIND_ROOT_PATH ${EP_INSTALL_DIR})
 
 # prefer static packages if building static library
 message("** Finding libraries")
@@ -109,45 +111,43 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
         )
 
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
-        ExternalProject_Add(mavlink
-            GIT_REPOSITORY "git://github.com/mavlink/mavlink.git"
-            GIT_TAG ${MAVLINK_TAG}
-            UPDATE_COMMAND ""
-            INSTALL_DIR ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}
+        ExternalProjectWithFilename_Add(mavlink
+            URL https://github.com/mavlink/mavlink/tarball/1.0.1
+            URL_MD5 f43f0bd0c8e655a998cec04630fbc53d
+            FILENAME mavlink-mavlink-1.0.1-0-g68bef8e.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
-            INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_BASE_DIR} install
+            INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
+            INSTALL_DIR ${EP_INSTALL_DIR}
            )
     endif()
 
     if (WITH_FLIGHTGEAR AND (NOT PLIB_FOUND))
         if (MINGW)
-            set(PLIB_CROSS_CONFIG "--host=i686-pc-mingw32" "--prefix=/usr/local/share/mingw-cross-env")
+            set(PLIB_CROSS_CONFIG "--build=i686-pc-mingw32" "--prefix=/usr/local")
         else()
             set(PLIB_CROSS_CONFIG "")
         endif()
-        ExternalProject_Add(plib
-            GIT_REPOSITORY "git://gitorious.org/plib/plib.git"
-            GIT_TAG ${PLIB_TAG}
-            UPDATE_COMMAND ""
-            CONFIGURE_COMMAND ./autogen.sh ${PLIB_CROSS_CONFIG}
+        ExternalProjectWithFilename_Add(plib
+            URL http://plib.sourceforge.net/dist/plib-1.8.5.tar.gz
+            URL_MD5 47a6fbf63668c1eed631024038b2ea90
+            CONFIGURE_COMMAND ./configure ${PLIB_CROSS_CONFIG}
             BUILD_COMMAND ${CMAKE_MAKE_COMMAND}
-            INSTALL_DIR ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}
-            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
-            INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_BASE_DIR} install
+            INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
+            INSTALL_DIR ${EP_INSTALL_DIR}
             BUILD_IN_SOURCE 1
            )
     endif()
 
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
-        ExternalProject_Add(simgear
-            GIT_REPOSITORY "git://gitorious.org/fg/simgear.git"
-            GIT_TAG ${SIMGEAR_TAG}
-            UPDATE_COMMAND ""
-            INSTALL_DIR ${EP_BASE_DIR}/${CMAKE_INSTALL_PREFIX}
+        ExternalProjectWithFilename_Add(simgear
+            URL http://gitorious.org/fg/simgear/archive-tarball/release/2.4.0
+            URL_MD5 7a2f13824b714e29c34611d86e30e4ff
+            FILENAME fg-simgear-release_2.4.0.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=1"
-            INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_BASE_DIR} install
+            INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
+            INSTALL_DIR ${EP_INSTALL_DIR}
+            DEPENDS plib
            )
-       add_dependencies(simgear plib)
     endif()
 
     # terminate non root cmake thread
