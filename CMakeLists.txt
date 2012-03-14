@@ -21,6 +21,10 @@ option(WITH_BUILD_TESTS "Build tests." OFF)
 
 # variables
 set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
+if (MINGW)
+    set(CMAKE_INSTALL_PREFIX "/")
+    set(INSTALL_DATA_DIR "C:/Program Files/${PROJECT_NAME} ${PROJECT_VERSION}/share/${PROJECT_NAME}")
+endif()
 
 # modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/arkcmake)
@@ -102,7 +106,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
     set(CMAKE_EP_DEFAULT_ARGS
         -DEP_BASE_DIR=${EP_BASE_DIR}
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-        -DCMAKE_INSTALL_PREFIX="/usr/local"
+        -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
         )
 
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
@@ -118,7 +122,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_FLIGHTGEAR AND (NOT PLIB_FOUND))
         if (MINGW)
-            set(PLIB_CROSS_CONFIG "--build=i686-pc-mingw32" "--prefix=/usr/local")
+            set(PLIB_CROSS_CONFIG "--build=i686-pc-mingw32" "--prefix=${CMAKE_INSTALL_PREFIX}")
         else()
             set(PLIB_CROSS_CONFIG "")
         endif()
