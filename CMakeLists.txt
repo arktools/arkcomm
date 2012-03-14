@@ -11,11 +11,6 @@ set(PROJECT_CONTACT_VENDOR arkTools)
 set(LIBRARY_VERSION ${PROJECT_VERSION})
 set(LIBRARY_SOVERSION "0.0.0")
 
-# third party
-set(MAVLINK_TAG "68bef8e3de04b5c5fe2cbdf2a26cd6db89e04454") # 1.0.1
-set(SIMGEAR_TAG "4e32cd6d108373c7f112b9a1140483cd0e62ecf5") # 2.4.0
-set(PLIB_TAG "0e45bd21fee09a490ac020f3e9a7b9cf468ef0e5") # latest
-
 # options
 option(WITH_BUILD_DEPS "Build dependencies." ON)
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
@@ -104,18 +99,18 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     # add external projects
 
-    set(CMAKE_DEFAULT_ARGS
+    set(CMAKE_EP_DEFAULT_ARGS
         -DEP_BASE_DIR=${EP_BASE_DIR}
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-        -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_INSTALL_PREFIX="/usr/local"
         )
 
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
         ExternalProjectWithFilename_Add(mavlink
-            URL https://github.com/mavlink/mavlink/tarball/1.0.1
-            URL_MD5 f43f0bd0c8e655a998cec04630fbc53d
-            FILENAME mavlink-mavlink-1.0.1-0-g68bef8e.tar.gz
-            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
+            URL https://github.com/mavlink/mavlink/tarball/1.0.3
+            URL_MD5 ae9fe71792fc4406c91a5a272d6b28b8
+            FILENAME mavlink-mavlink-1.0.3-0-g0d97e6c.tar.gz
+            CMAKE_ARGS "${CMAKE_EP_DEFAULT_ARGS}"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${EP_INSTALL_DIR}
            )
@@ -140,13 +135,13 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProjectWithFilename_Add(simgear
+            DEPENDS plib
             URL http://gitorious.org/fg/simgear/archive-tarball/release/2.4.0
             URL_MD5 7a2f13824b714e29c34611d86e30e4ff
             FILENAME fg-simgear-release_2.4.0.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=1"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${EP_INSTALL_DIR}
-            DEPENDS plib
            )
     endif()
 
