@@ -21,7 +21,12 @@
 
 #include "net_ctrls.hxx"
 #include "net_fdm.hxx"
+
+#ifdef _WIN32_WINNT
+#include <winsock.h>
+#else
 #include <netinet/in.h>
+#endif
 
 void htond (double &x);
 void htonf (float &x);

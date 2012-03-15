@@ -34,7 +34,7 @@
 #include <iostream>
 #include <algorithm>
 #include <osg/Math>             // isNaN
-#include <plib/netSocket.h>
+//#include <plib/netSocket.h>
 
 #include <simgear/misc/stdint.hxx>
 #include <simgear/timing/timestamp.hxx>

@@ -37,7 +37,7 @@
 
 #include <vector>
 
-#include <plib/sg.h>
+//#include <plib/sg.h>
 #include <simgear/compiler.h>
 #include <simgear/props/props.hxx>
 #include <simgear/math/SGMath.hxx>

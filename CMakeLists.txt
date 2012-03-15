@@ -92,7 +92,6 @@ else()
 endif()
 if (WITH_FLIGHTGEAR)
     find_package(SimGear ${REQUIRED_IF_ROOT_THREAD} COMPONENTS io math timing debug)
-    find_package(PLIB ${REQUIRED_IF_ROOT_THREAD} COMPONENTS net)
 endif()
 find_package(Threads REQUIRED)
 find_package(MAVLink ${REQUIRED_IF_ROOT_THREAD})
@@ -120,30 +119,12 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
            )
     endif()
 
-    if (WITH_FLIGHTGEAR AND (NOT PLIB_FOUND))
-        if (MINGW)
-            set(PLIB_CROSS_CONFIG "--host=i686-pc-mingw32" "--prefix=${CMAKE_INSTALL_PREFIX}")
-        else()
-            set(PLIB_CROSS_CONFIG "")
-        endif()
-        ExternalProjectWithFilename_Add(plib
-            URL http://plib.sourceforge.net/dist/plib-1.8.5.tar.gz
-            URL_MD5 47a6fbf63668c1eed631024038b2ea90
-            CONFIGURE_COMMAND ./configure ${PLIB_CROSS_CONFIG}
-            BUILD_COMMAND ${CMAKE_MAKE_COMMAND}
-            INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
-            INSTALL_DIR ${EP_INSTALL_DIR}
-            BUILD_IN_SOURCE 1
-           )
-    endif()
-
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProjectWithFilename_Add(simgear
-            DEPENDS plib
-            URL http://gitorious.org/fg/simgear/archive-tarball/release/2.6.0
-            URL_MD5 07006cc21e57cd32e5382885a67e12be
-            FILENAME fg-simgear-release_2.6.0.tar.gz
-            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=1" "-DCMAKE_C_FLAGS=-D_WIN32"
+            URL https://gitorious.org/fg/jgopperts-simgear/archive-tarball/mingw-fix
+            URL_MD5 08146d3805503d695d6d347d2f06ae13
+            FILENAME jgoppert-jgopperts-simgear-mingw-fix.tar.gz
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=1"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${EP_INSTALL_DIR}
            )
@@ -202,7 +183,7 @@ if (MAVLINK_FOUND)
         )
 endif()
 
-if (SIMGEAR_FOUND AND PLIB_FOUND)
+if (WITH_FLIGHTGEAR)
     list(APPEND arkcommSources
         src/FlightGearComm.cpp
         src/flightGearUtils.cpp
@@ -214,13 +195,13 @@ if (SIMGEAR_FOUND AND PLIB_FOUND)
         src/net_fdm.hxx
         )
     list(APPEND arkcommLibs
-        ${PLIB_LIBRARIES} ${SIMGEAR_LIBRARIES} 
+        ${SIMGEAR_LIBRARIES} 
         )
 endif()
 
 # static library
 add_library(arkcommStatic STATIC ${arkcommSources})
-add_dependencies(arkcommStatic mavlink simgear plib)
+add_dependencies(arkcommStatic mavlink simgear)
 set_target_properties(arkcommStatic PROPERTIES 
     OUTPUT_NAME arkcomm
     VERSION ${LIBRARY_VERSION} 
@@ -233,7 +214,7 @@ install(TARGETS arkcommStatic
 # shared library
 if (BUILD_SHARED)
     add_library(arkcommShared SHARED ${arkcommSources})
-    add_dependencies(arkcommShared mavlink simgear plib)
+    add_dependencies(arkcommShared mavlink simgear)
     set_target_properties(arkcommShared PROPERTIES 
     OUTPUT_NAME arkcomm
     VERSION ${LIBRARY_VERSION} 
@@ -265,8 +246,8 @@ if (WITH_FLIGHTGEAR)
         #src/multiplay.hxx
         #src/multiplay.cxx
         #)
-    #add_dependencies(fgMultiPlayer simgear plib)
-    #target_link_libraries(fgMultiPlayer ${PLIB_LIBRARIES} ${SIMGEAR_LIBRARIES})
+    #add_dependencies(fgMultiPlayer simgear)
+    #target_link_libraries(fgMultiPlayer ${SIMGEAR_LIBRARIES})
 endif()
 
 # test programs
@@ -277,7 +258,7 @@ if (WITH_BUILD_TESTS)
     endif()
     if (WITH_FLIGHTGEAR)
         add_executable(fgMultiPlayerTest test/fgMultiPlayer.cpp)
-        target_link_libraries(fgMultiPlayerTest fgMultiPlayer ${SIMGEAR_LIBRARIES} ${PLIB_LIBRIES})
+        target_link_libraries(fgMultiPlayerTest fgMultiPlayer ${SIMGEAR_LIBRARIES})
     endif()
 endif()
 

@@ -46,7 +46,7 @@ using std::map;
 
 #include <simgear/compiler.h>
 #include <simgear/props/props.hxx>
-#include <plib/netSocket.h>
+//#include <plib/netSocket.h>
 //#include <Main/globals.hxx>
 
 //#include <AIModel/AIMultiplayer.hxx>
