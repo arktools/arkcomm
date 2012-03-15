@@ -114,7 +114,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
             URL https://github.com/mavlink/mavlink/tarball/1.0.3
             URL_MD5 ae9fe71792fc4406c91a5a272d6b28b8
             FILENAME mavlink-mavlink-1.0.3-0-g0d97e6c.tar.gz
-            CMAKE_ARGS "${CMAKE_EP_DEFAULT_ARGS}"
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${EP_INSTALL_DIR}
            )
@@ -122,7 +122,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_FLIGHTGEAR AND (NOT PLIB_FOUND))
         if (MINGW)
-            set(PLIB_CROSS_CONFIG "--build=i686-pc-mingw32" "--prefix=${CMAKE_INSTALL_PREFIX}")
+            set(PLIB_CROSS_CONFIG "--host=i686-pc-mingw32" "--prefix=${CMAKE_INSTALL_PREFIX}")
         else()
             set(PLIB_CROSS_CONFIG "")
         endif()
@@ -140,17 +140,17 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProjectWithFilename_Add(simgear
             DEPENDS plib
-            URL http://gitorious.org/fg/simgear/archive-tarball/release/2.4.0
-            URL_MD5 7a2f13824b714e29c34611d86e30e4ff
-            FILENAME fg-simgear-release_2.4.0.tar.gz
-            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=1"
+            URL http://gitorious.org/fg/simgear/archive-tarball/release/2.6.0
+            URL_MD5 07006cc21e57cd32e5382885a67e12be
+            FILENAME fg-simgear-release_2.6.0.tar.gz
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=1" "-DCMAKE_C_FLAGS=-D_WIN32"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${EP_INSTALL_DIR}
            )
     endif()
 
-    # terminate non root cmake thread
     return()
+
 endif()
 
 # configure
@@ -255,17 +255,18 @@ endif()
 
 # flightgear multiplayer library
 if (WITH_FLIGHTGEAR)
-    include_directories(thirdParty thirdParty/flightgear/MultiPlayer thirdParty/flightgear src)
-    add_library(fgMultiPlayer STATIC 
-        thirdParty/flightgear/MultiPlayer/mpmessages.hxx
-        thirdParty/flightgear/MultiPlayer/tiny_xdr.cxx
-        thirdParty/flightgear/MultiPlayer/tiny_xdr.hxx
-        src/multiplaymgr.hxx
-        src/multiplaymgr.cxx
-        src/multiplay.hxx
-        src/multiplay.cxx
-        )
-    target_link_libraries(fgMultiPlayer ${PLIB_LIBRARIES} ${SIMGEAR_LIBRARIES})
+    #include_directories(thirdParty thirdParty/flightgear/MultiPlayer thirdParty/flightgear src)
+    #add_library(fgMultiPlayer STATIC 
+        #thirdParty/flightgear/MultiPlayer/mpmessages.hxx
+        #thirdParty/flightgear/MultiPlayer/tiny_xdr.cxx
+        #thirdParty/flightgear/MultiPlayer/tiny_xdr.hxx
+        #src/multiplaymgr.hxx
+        #src/multiplaymgr.cxx
+        #src/multiplay.hxx
+        #src/multiplay.cxx
+        #)
+    #add_dependencies(fgMultiPlayer simgear plib)
+    #target_link_libraries(fgMultiPlayer ${PLIB_LIBRARIES} ${SIMGEAR_LIBRARIES})
 endif()
 
 # test programs
