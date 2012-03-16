@@ -22,7 +22,6 @@ option(WITH_BUILD_TESTS "Build tests." OFF)
 # variables
 set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
 if (MINGW)
-    set(CMAKE_INSTALL_PREFIX "/")
     set(INSTALL_DATA_DIR "C:/Program Files/${PROJECT_NAME} ${PROJECT_VERSION}/share/${PROJECT_NAME}")
 endif()
 
