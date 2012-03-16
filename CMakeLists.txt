@@ -4,7 +4,7 @@ project (arkcomm C CXX)
 cmake_minimum_required (VERSION 2.8)
 set(PROJECT_VERSION_MAJOR "0")
 set(PROJECT_VERSION_MINOR "1")
-set(PROJECT_VERSION_PATCH "4")
+set(PROJECT_VERSION_PATCH "6")
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 set(PROJECT_CONTACT_EMAIL james.goppert@gmail.com)
 set(PROJECT_CONTACT_VENDOR arkTools)
@@ -134,22 +134,13 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 endif()
 
 # configure
-check_include_files(expat_config.h HAVE_EXPAT_CONFIG_H)
-check_include_files(sys_types.h HAVE_SYS_TYPES_H)
-check_include_files(sys_stat.h HAVE_SYS_STAT_H)
-check_include_files(stdlib.h HAVE_STDLIB_H)
-check_include_files(string.h HAVE_STRING_H)
-check_include_files(inttypes.h HAVE_INTTYPES_H)
-check_include_files(stdint.h HAVE_STDINT_H)
-check_include_files(unistd.h HAVE_UNISTD_H)
-check_function_exists(memmove HAVE_MEMMOVE)
-check_function_exists(bcopy HAVE_BCOPY)
+#check_include_files(string.h HAVE_STRING_H)
 #check_symbol_exists(LC_MESSAGES "locale.h" HAVE_LC_MESSAGES) 
 #check_library_exists(arkosg  attachNode "" HAVE_ARKOSG)
 
 # config files
 configure_file(config.h.in config.h)
-configure_file(VERSION.in VERSION)
+install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION include/${PROJECT_NAME} COMPONENT Dev)
 
 # build settings
 if (MINGW)
@@ -263,7 +254,6 @@ endif()
 
 # install headers
 install(FILES ${arkcommHeaders} DESTINATION include/arkcomm COMPONENT Dev)
-install(FILES ${CMAKE_BINARY_DIR}/VERSION DESTINATION include/arkcomm COMPONENT Dev)
 
 # packaging
 if (WIN32)
