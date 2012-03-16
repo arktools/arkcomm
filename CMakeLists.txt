@@ -4,7 +4,7 @@ project (arkcomm C CXX)
 cmake_minimum_required (VERSION 2.8)
 set(PROJECT_VERSION_MAJOR "0")
 set(PROJECT_VERSION_MINOR "1")
-set(PROJECT_VERSION_PATCH "4")
+set(PROJECT_VERSION_PATCH "6")
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 set(PROJECT_CONTACT_EMAIL james.goppert@gmail.com)
 set(PROJECT_CONTACT_VENDOR arkTools)
@@ -141,6 +141,7 @@ endif()
 
 # config files
 configure_file(config.h.in config.h)
+install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION include/${PROJECT_NAME} COMPONENT Dev)
 
 # build settings
 if (MINGW)
@@ -254,7 +255,6 @@ endif()
 
 # install headers
 install(FILES ${arkcommHeaders} DESTINATION include/arkcomm COMPONENT Dev)
-install(FILES ${CMAKE_BINARY_DIR}/VERSION DESTINATION include/arkcomm COMPONENT Dev)
 
 # packaging
 if (WIN32)
