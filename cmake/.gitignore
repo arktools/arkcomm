@@ -4,6 +4,5 @@ arkcmake/*
 !arkcmake/autobuild.py
 !arkcmake/get_build_path.py
 !arkcmake/FindMAVLink.cmake
-!arkcmake/FindPLIB.cmake
 !arkcmake/FindSimGear.cmake
 !arkcmake/ExternalProjectWithFilename.cmake

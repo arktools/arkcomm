@@ -91,7 +91,7 @@ else()
     find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
 endif()
 if (WITH_FLIGHTGEAR)
-    find_package(SimGear ${REQUIRED_IF_ROOT_THREAD} COMPONENTS io math timing debug)
+    find_package(SimGear 2.7.0 ${REQUIRED_IF_ROOT_THREAD} COMPONENTS io math timing debug)
 endif()
 find_package(Threads REQUIRED)
 find_package(MAVLink ${REQUIRED_IF_ROOT_THREAD})
@@ -122,9 +122,9 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProjectWithFilename_Add(simgear
             URL https://gitorious.org/fg/jgopperts-simgear/archive-tarball/mingw-fix
-            URL_MD5 08146d3805503d695d6d347d2f06ae13
+            URL_MD5 fcb8eac3355778904b2d11e487033e4b
             FILENAME jgoppert-jgopperts-simgear-mingw-fix.tar.gz
-            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=1"
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=ON"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${EP_INSTALL_DIR}
            )

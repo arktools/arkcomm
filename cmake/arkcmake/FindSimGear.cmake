@@ -56,10 +56,11 @@ find_path(SIMGEAR_DATADIR
     )
 
 # read the version
-if (EXISTS ${_SIMGEAR_INCLUDE_DIR}/version.h)
-    file(READ ${_SIMGEAR_INCLUDE_DIR}/version.h SIMGEAR_VERSION_FILE)
-    string(REGEX MATCH "^# define SIMGEAR_VERSION.*([0-9]\.[0-9]\.[0-9])")
-    set(SIMGEAR_VERSION ${CMAKE_MATCH_0})
+if (EXISTS ${_SIMGEAR_INCLUDE_DIR}/simgear/version.h)
+    file(READ ${_SIMGEAR_INCLUDE_DIR}/simgear/version.h SIMGEAR_VERSION_FILE)
+    string(REGEX MATCH "#define SIMGEAR_VERSION[ ]+([0-9]\\.[0-9]\\.[0-9])"
+        SIMGEAR_VERSION_MATCH ${SIMGEAR_VERSION_FILE})
+    set(SIMGEAR_VERSION ${CMAKE_MATCH_1})
 endif()
 
 # find components
