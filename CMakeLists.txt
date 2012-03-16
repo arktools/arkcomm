@@ -135,22 +135,12 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 endif()
 
 # configure
-check_include_files(expat_config.h HAVE_EXPAT_CONFIG_H)
-check_include_files(sys_types.h HAVE_SYS_TYPES_H)
-check_include_files(sys_stat.h HAVE_SYS_STAT_H)
-check_include_files(stdlib.h HAVE_STDLIB_H)
-check_include_files(string.h HAVE_STRING_H)
-check_include_files(inttypes.h HAVE_INTTYPES_H)
-check_include_files(stdint.h HAVE_STDINT_H)
-check_include_files(unistd.h HAVE_UNISTD_H)
-check_function_exists(memmove HAVE_MEMMOVE)
-check_function_exists(bcopy HAVE_BCOPY)
+#check_include_files(string.h HAVE_STRING_H)
 #check_symbol_exists(LC_MESSAGES "locale.h" HAVE_LC_MESSAGES) 
 #check_library_exists(arkosg  attachNode "" HAVE_ARKOSG)
 
 # config files
 configure_file(config.h.in config.h)
-configure_file(VERSION.in VERSION)
 
 # build settings
 if (MINGW)
