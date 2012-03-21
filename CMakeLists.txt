@@ -18,10 +18,10 @@ set(MAVLINK_REQUIRED_VERSION 1.0.0)
 
 # md5 check sums
 set(SIMGEAR_MD5 fcb8eac3355778904b2d11e487033e4b)
-set(MAVLINK_MD5 ae9fe71792fc4406c91a5a272d6b28b8)
+set(MAVLINK_MD5 4c30f1ba8f8692b5d42eab0608cdade8)
 
 # options
-option(WITH_BUILD_DEPS "Build dependencies." ON)
+option(WITH_BUILD_DEPS "Build dependencies." OFF)
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
 option(WITH_MAVLINK "Build with mavlink support." ON)
 option(WITH_FLIGHTGEAR "Build with flightgear support." ON)
@@ -132,11 +132,11 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProjectWithFilename_Add(simgear
             URL https://gitorious.org/fg/jgopperts-simgear/archive-tarball/mingw-fix
-            URL_MD5 
+            URL_MD5 ${SIMGEAR_MD5}
             FILENAME jgoppert-jgopperts-simgear-mingw-fix.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=ON"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
-            INSTALL_DIR ${EP_INSTALL_DIR}
+            INSTALL_DIR ${E_INSTALL_DIR}
            )
     endif()
 
