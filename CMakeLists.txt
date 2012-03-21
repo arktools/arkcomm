@@ -11,6 +11,15 @@ set(PROJECT_CONTACT_VENDOR arkTools)
 set(LIBRARY_VERSION ${PROJECT_VERSION})
 set(LIBRARY_SOVERSION "0.0.0")
 
+# third party libraries
+set(BOOST_REQUIRED_VERSION 1.4.2)
+set(SIMGEAR_REQUIRED_VERSION 2.7.0)
+set(MAVLINK_REQUIRED_VERSION 1.0.0)
+
+# md5 check sums
+set(SIMGEAR_MD5 fcb8eac3355778904b2d11e487033e4b)
+set(MALVINK_MD5 ae9fe71792fc4406c91a5a272d6b28b8)
+
 # options
 option(WITH_BUILD_DEPS "Build dependencies." ON)
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
@@ -18,6 +27,7 @@ option(WITH_MAVLINK "Build with mavlink support." ON)
 option(WITH_FLIGHTGEAR "Build with flightgear support." ON)
 option(WITH_BUILD_SHARED "Build the shared library." OFF)
 option(WITH_BUILD_TESTS "Build tests." OFF)
+option(WITH_WARNINGS "Enable warnings." OFF)
 
 # variables
 set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
@@ -27,6 +37,8 @@ endif()
 
 # modules
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/arkcmake)
+include(DefineCMakeDefaults)
+include(DefineCompilerFlags)
 include(BundleUtilities)
 include(CheckIncludeFiles)
 include(CheckFunctionExists)
@@ -41,7 +53,6 @@ include(ExternalProjectWithFilename)
 # spawn new cmake to build deps
 if (WITH_BUILD_DEPS AND ROOT_THREAD)
     execute_process(COMMAND ${CMAKE_COMMAND} "${CMAKE_SOURCE_DIR}"
-        "-DROOT_THREAD=n"
         "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
         "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
         "-DEP_BASE_DIR=${EP_BASE_DIR}"
@@ -49,7 +60,7 @@ if (WITH_BUILD_DEPS AND ROOT_THREAD)
         "-DWITH_BUILD_STATIC=${WITH_BUILD_STATIC}"
         "-DWITH_MAVLINK=${WITH_MAVLINK}"
         "-DWITH_FLIGHTGEAR=${WITH_FLIGHTGEAR}"
-        "-DWITH_BUILD_TESTS=${WITH_BUILD_TESTS}"
+        "-DROOT_THREAD=FALSE"
         RESULT_VARIABLE ERROR)
     if (ERROR)
         message(FATAL_ERROR "error, recursing loop returned error code: ${ERROR}")
@@ -90,10 +101,10 @@ else()
     find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
 endif()
 if (WITH_FLIGHTGEAR)
-    find_package(SimGear 2.7.0 ${REQUIRED_IF_ROOT_THREAD} COMPONENTS io math timing debug)
+    find_package(SimGear ${SIMGEAR_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD} COMPONENTS io math timing debug)
 endif()
 find_package(Threads REQUIRED)
-find_package(MAVLink ${REQUIRED_IF_ROOT_THREAD})
+find_package(MAVLink 1.0.0 ${REQUIRED_IF_ROOT_THREAD})
 
 # build dependencies
 if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
@@ -109,9 +120,9 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
         ExternalProjectWithFilename_Add(mavlink
-            URL https://github.com/mavlink/mavlink/tarball/1.0.3
-            URL_MD5 ae9fe71792fc4406c91a5a272d6b28b8
-            FILENAME mavlink-mavlink-1.0.3-0-g0d97e6c.tar.gz
+            URL https://github.com/mavlink/mavlink/tarball/${MAVLINK_REQUIRED_VERSION}
+            URL_MD5 ${MAVLINK_MD5}
+            FILENAME mavlink-${MAVLINK_MD5}.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${EP_INSTALL_DIR}
@@ -121,7 +132,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProjectWithFilename_Add(simgear
             URL https://gitorious.org/fg/jgopperts-simgear/archive-tarball/mingw-fix
-            URL_MD5 fcb8eac3355778904b2d11e487033e4b
+            URL_MD5 
             FILENAME jgoppert-jgopperts-simgear-mingw-fix.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=ON"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
@@ -146,6 +157,18 @@ install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION include/${PROJECT_NAME} C
 if (MINGW)
     add_definitions(-D_WIN32_WINNT=0x0501)
     add_definitions(-DBOOST_THREAD_USE_LIB)
+endif()
+
+if (WITH_WARNINGS)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wmissing-prototypes -Wdeclaration-after-statement")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wunused -Wfloat-equal -Wpointer-arith -Wwrite-strings -Wformat-security")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-format-attribute")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused -Wfloat-equal -Wpointer-arith -Wwrite-strings -Wformat-security")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-format-attribute")
 endif()
 
 # project wide flags

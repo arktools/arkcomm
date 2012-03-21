@@ -42,23 +42,29 @@
 # macros
 include(FindPackageHandleStandardArgs)
 
+set(_SIMGEAR_EXTRA_SEARCH_PATHS
+    /usr/local
+    /opt/local
+    )
+
 # find the include directory
 find_path(_SIMGEAR_INCLUDE_DIR
 	NAMES simgear/version.h
-    PATHS /usr/local
+    PATHS ${_SIMGEAR_EXTRA_SEARCH_PATHS}
+    PATH_SUFFIXES include
     )
 
 # find the data directory
 find_path(SIMGEAR_DATADIR
 	NAMES simgear/VERSION
+    PATHS ${_SIMGEAR_EXTRA_SEARCH_PATHS}
     PATH_SUFFIXES share
-    PATHS /usr/local
     )
 
 # read the version
 if (EXISTS ${_SIMGEAR_INCLUDE_DIR}/simgear/version.h)
     file(READ ${_SIMGEAR_INCLUDE_DIR}/simgear/version.h SIMGEAR_VERSION_FILE)
-    string(REGEX MATCH "#define SIMGEAR_VERSION[ ]+([0-9]\\.[0-9]\\.[0-9])"
+    string(REGEX MATCH "#define SIMGEAR_VERSION[ ]+\"(([0-9]+\\.)+[0-9]+)\""
         SIMGEAR_VERSION_MATCH ${SIMGEAR_VERSION_FILE})
     set(SIMGEAR_VERSION ${CMAKE_MATCH_1})
 endif()
@@ -73,7 +79,8 @@ foreach(component ${SimGear_FIND_COMPONENTS})
     string(TOLOWER ${component} component_lc) 
     find_library(SIMGEAR_${component_uc}
         NAMES sg${component_lc}
-        PATHS /usr/local
+        PATHS ${_SIMGEAR_EXTRA_SEARCH_PATHS}
+        PATH_SUFFIXES lib
         )
     list(APPEND SIMGEAR_LIBRARIES ${SIMGEAR_${component_uc}})
 endforeach()
