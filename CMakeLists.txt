@@ -18,7 +18,7 @@ set(MAVLINK_REQUIRED_VERSION 1.0.0)
 
 # md5 check sums
 set(SIMGEAR_MD5 fcb8eac3355778904b2d11e487033e4b)
-set(MALVINK_MD5 ae9fe71792fc4406c91a5a272d6b28b8)
+set(MAVLINK_MD5 ae9fe71792fc4406c91a5a272d6b28b8)
 
 # options
 option(WITH_BUILD_DEPS "Build dependencies." ON)
