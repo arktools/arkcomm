@@ -14,11 +14,11 @@ set(LIBRARY_SOVERSION "0.0.0")
 # third party libraries
 set(BOOST_REQUIRED_VERSION 1.4.2)
 set(SIMGEAR_REQUIRED_VERSION 2.7.0)
-set(MAVLINK_REQUIRED_VERSION 1.0.0)
+set(MAVLINK_REQUIRED_VERSION 1.0.4)
 
 # md5 check sums
 set(SIMGEAR_MD5 fcb8eac3355778904b2d11e487033e4b)
-set(MAVLINK_MD5 4c30f1ba8f8692b5d42eab0608cdade8)
+set(MAVLINK_MD5 bebd52f934ff5226fcceebe59688ba4e)
 
 # options
 option(WITH_BUILD_DEPS "Build dependencies." OFF)
