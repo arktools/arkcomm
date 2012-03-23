@@ -29,6 +29,19 @@ option(WITH_BUILD_SHARED "Build the shared library." OFF)
 option(WITH_BUILD_TESTS "Build tests." OFF)
 option(WITH_WARNINGS "Enable warnings." OFF)
 
+set(RECURSE_OPTIONS_LIST
+    WITH_BUILD_DEPS
+    WITH_BUILD_STATIC
+    WITH_MAVLINK
+    WITH_FLIGHTGEAR
+    WITH_BUILD_SHARED
+    WITH_BUILD_TESTS
+    WITH_WARNINGS
+    CMAKE_TOOLCHAIN_FILE
+    CMAKE_INSTALL_PREFIX
+    EP_BASE_DIR
+) 
+
 # variables
 set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
 if (MINGW)
@@ -50,17 +63,21 @@ include(CheckLibraryExists)
 #include(CheckCSourceCompiles)
 include(ExternalProjectWithFilename)
 
+# external projects find path
+if(NOT EP_BASE_DIR)
+    set(EP_BASE_DIR "${CMAKE_BINARY_DIR}/CMakeExternals")
+endif()
+set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
+set(EP_INSTALL_DIR "${EP_BASE_DIR}/Install")
+list(APPEND CMAKE_FIND_ROOT_PATH ${EP_INSTALL_DIR})
+
 # spawn new cmake to build deps
 if (WITH_BUILD_DEPS AND ROOT_THREAD)
-    execute_process(COMMAND ${CMAKE_COMMAND} "${CMAKE_SOURCE_DIR}"
-        "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
-        "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
-        "-DEP_BASE_DIR=${EP_BASE_DIR}"
-        "-DWITH_BUILD_DEPS=${WITH_BUILD_DEPS}"
-        "-DWITH_BUILD_STATIC=${WITH_BUILD_STATIC}"
-        "-DWITH_MAVLINK=${WITH_MAVLINK}"
-        "-DWITH_FLIGHTGEAR=${WITH_FLIGHTGEAR}"
-        "-DROOT_THREAD=FALSE"
+    set(CMAKE_RECURSE_ARGS "-DROOT_THREAD=FALSE")
+    foreach(OPT ${RECURSE_OPTIONS_LIST})
+        list(APPEND CMAKE_RECURSE_ARGS "-D${OPT}=${${OPT}}")
+    endforeach()
+    execute_process(COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} ${CMAKE_RECURSE_ARGS}
         RESULT_VARIABLE ERROR)
     if (ERROR)
         message(FATAL_ERROR "error, recursing loop returned error code: ${ERROR}")
@@ -69,14 +86,6 @@ if (WITH_BUILD_DEPS AND ROOT_THREAD)
     execute_process(COMMAND ${CMAKE_MAKE_PROGRAM} "-j4" "-f${CMAKE_BINARY_DIR}/Makefile")
     message("** Configuring ${PROJECT_NAME}")
 endif()
-
-# external projects find path
-if(NOT EP_BASE_DIR)
-    set(EP_BASE_DIR "${CMAKE_BINARY_DIR}/CMakeExternals")
-endif()
-set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
-set(EP_INSTALL_DIR "${EP_BASE_DIR}/Install")
-list(APPEND CMAKE_FIND_ROOT_PATH ${EP_INSTALL_DIR})
 
 # prefer static packages if building static library
 message("** Finding libraries")
@@ -96,9 +105,9 @@ if (ROOT_THREAD)
     set(REQUIRED_IF_ROOT_THREAD "REQUIRED")
 endif()
 if (WIN32)
-    find_package(Boost 1.40.0 REQUIRED COMPONENTS thread_win32-mt system-mt)
+    find_package(Boost ${BOOST_REQUIRED_VERSION} REQUIRED COMPONENTS thread_win32-mt system-mt)
 else()
-    find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
+    find_package(Boost ${BOOST_REQUIRED_VERSION} REQUIRED COMPONENTS thread-mt system-mt)
 endif()
 if (WITH_FLIGHTGEAR)
     find_package(SimGear ${SIMGEAR_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD} COMPONENTS io math timing debug)
