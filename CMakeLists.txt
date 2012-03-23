@@ -104,7 +104,7 @@ if (WITH_FLIGHTGEAR)
     find_package(SimGear ${SIMGEAR_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD} COMPONENTS io math timing debug)
 endif()
 find_package(Threads REQUIRED)
-find_package(MAVLink 1.0.0 ${REQUIRED_IF_ROOT_THREAD})
+find_package(MAVLink ${MAVLINK_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD})
 
 # build dependencies
 if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
