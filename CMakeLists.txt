@@ -143,7 +143,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
             URL https://gitorious.org/fg/jgopperts-simgear/archive-tarball/mingw-fix
             URL_MD5 ${SIMGEAR_MD5}
             FILENAME jgoppert-jgopperts-simgear-mingw-fix.tar.gz
-            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=ON"
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=ON -DENABLE_TESTS=OFF"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${E_INSTALL_DIR}
            )
