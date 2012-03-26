@@ -17,8 +17,8 @@ set(SIMGEAR_REQUIRED_VERSION 2.7.0)
 set(MAVLINK_REQUIRED_VERSION 1.0.4)
 
 # tags
-set(SIMGEAR_TAG fcb8eac3355778904b2d11e487033e4b)
-set(MAVLINK_TAG bebd52f934ff5226fcceebe59688ba4e)
+set(SIMGEAR_TAG 43ab2b6ecb31fb6ca72f3cfdb4395b352a95e365)
+set(MAVLINK_TAG 112cad9a4f6dddd0e65472fdc2a0956ab39da0e6)
 
 # options
 option(WITH_BUILD_DEPS "Build dependencies." OFF)
@@ -141,7 +141,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
         ExternalProjectWithFilename_Add(simgear
             URL http://gitorious.org/fg/jgopperts-simgear/archive-tarball/${SIMGEAR_TAG}
             FILENAME jgoppert-jgopperts-simgear-${SIMGEAR_TAG}.tar.gz
-            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=ON -DENABLE_TESTS=OFF"
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DCMAKE_FIND_ROOT=/opt/local" "-DSIMGEAR_HEADLESS=ON" "-DENABLE_TESTS=OFF"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${E_INSTALL_DIR}
            )
