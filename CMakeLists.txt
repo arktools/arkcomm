@@ -129,7 +129,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
         ExternalProjectWithFilename_Add(mavlink
-            URL https://github.com/mavlink/mavlink/tarball/${MAVLINK_REQUIRED_VERSION}
+            URL http://nodeload.github.com/mavlink/mavlink/tarball/${MAVLINK_REQUIRED_VERSION}
             URL_MD5 ${MAVLINK_MD5}
             FILENAME mavlink-${MAVLINK_MD5}.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
@@ -140,7 +140,7 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProjectWithFilename_Add(simgear
-            URL https://gitorious.org/fg/jgopperts-simgear/archive-tarball/mingw-fix
+            URL http://gitorious.org/fg/jgopperts-simgear/archive-tarball/mingw-fix
             URL_MD5 ${SIMGEAR_MD5}
             FILENAME jgoppert-jgopperts-simgear-mingw-fix.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=ON -DENABLE_TESTS=OFF"
