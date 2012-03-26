@@ -165,7 +165,7 @@ if (MINGW)
     add_definitions(-D_WIN32_WINNT=0x0501)
     add_definitions(-DBOOST_THREAD_USE_LIB)
 elseif(APPLE)
-    set(CMAKE_OSX_ARCHITECTURES "ppc;i386" CACHE STRING "Build architectures for OSX" FORCE)
+    set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architectures for OSX" FORCE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.5 -ftree-vectorize -fvisibility-inlines-hidden" CACHE STRING "Flags used by the compiler during all build types." FORCE)
 endif()
 
