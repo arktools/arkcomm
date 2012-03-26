@@ -16,9 +16,9 @@ set(BOOST_REQUIRED_VERSION 1.4.2)
 set(SIMGEAR_REQUIRED_VERSION 2.7.0)
 set(MAVLINK_REQUIRED_VERSION 1.0.4)
 
-# md5 check sums
-set(SIMGEAR_MD5 fcb8eac3355778904b2d11e487033e4b)
-set(MAVLINK_MD5 bebd52f934ff5226fcceebe59688ba4e)
+# tags
+set(SIMGEAR_TAG fcb8eac3355778904b2d11e487033e4b)
+set(MAVLINK_TAG bebd52f934ff5226fcceebe59688ba4e)
 
 # options
 option(WITH_BUILD_DEPS "Build dependencies." OFF)
@@ -129,9 +129,8 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
         ExternalProjectWithFilename_Add(mavlink
-            URL http://nodeload.github.com/mavlink/mavlink/tarball/${MAVLINK_REQUIRED_VERSION}
-            URL_MD5 ${MAVLINK_MD5}
-            FILENAME mavlink-${MAVLINK_MD5}.tar.gz
+            URL http://nodeload.github.com/mavlink/mavlink/tarball/${MAVLINK_TAG}
+            FILENAME mavlink-${MAVLINK_TAG}.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${EP_INSTALL_DIR}
@@ -140,9 +139,8 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProjectWithFilename_Add(simgear
-            URL http://gitorious.org/fg/jgopperts-simgear/archive-tarball/mingw-fix
-            URL_MD5 ${SIMGEAR_MD5}
-            FILENAME jgoppert-jgopperts-simgear-mingw-fix.tar.gz
+            URL http://gitorious.org/fg/jgopperts-simgear/archive-tarball/${SIMGEAR_TAG}
+            FILENAME jgoppert-jgopperts-simgear-${SIMGEAR_TAG}.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=ON -DENABLE_TESTS=OFF"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${E_INSTALL_DIR}
@@ -166,6 +164,9 @@ install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION include/${PROJECT_NAME} C
 if (MINGW)
     add_definitions(-D_WIN32_WINNT=0x0501)
     add_definitions(-DBOOST_THREAD_USE_LIB)
+elseif(APPLE)
+    set(CMAKE_OSX_ARCHITECTURES "ppc;i386" CACHE STRING "Build architectures for OSX" FORCE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.5 -ftree-vectorize -fvisibility-inlines-hidden" CACHE STRING "Flags used by the compiler during all build types." FORCE)
 endif()
 
 if (WITH_WARNINGS)
