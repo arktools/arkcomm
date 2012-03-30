@@ -24,7 +24,7 @@ set(MAVLINK_TAG 112cad9a4f6dddd0e65472fdc2a0956ab39da0e6)
 option(WITH_BUILD_DEPS "Build dependencies." OFF)
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
 option(WITH_MAVLINK "Build with mavlink support." ON)
-option(WITH_FLIGHTGEAR "Build with flightgear support." ON)
+option(WITH_FLIGHTGEAR "Build with flightgear support." OFF)
 option(WITH_BUILD_SHARED "Build the shared library." OFF)
 option(WITH_BUILD_TESTS "Build tests." OFF)
 option(WITH_WARNINGS "Enable warnings." OFF)
@@ -199,7 +199,7 @@ set(arkcommHeaders
 
 if (MAVLINK_FOUND)
     list(APPEND arkcommSources
-        src/asio_mavlink_bridge.cpp
+        #src/asio_mavlink_bridge.cpp
         )
     list(APPEND arkcommHeaders
         src/asio_mavlink_bridge.h
