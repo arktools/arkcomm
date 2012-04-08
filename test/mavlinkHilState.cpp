@@ -2,46 +2,64 @@
 #include <iostream>
 #include <stdexcept>
 #include <boost/timer.hpp>
+#include <inttypes.h>
 
 // mavlink system definition and headers
-#include "asio_mavlink_bridge.h"
-#include <mavlink/v0.9/common/mavlink.h>
+#include "mavlink/v1.0/common/mavlink.h"
 
-static const double rad2deg = 180.0/3.14159;
 
 class MavlinkHilState {
 
 private:
-    uint16_t count;
-    uint16_t packet_drops;
-    mavlink_channel_t chan;
-    boost::timer clock;
+
+    // private attributes
+    
+    mavlink_system_t _system;
+    mavlink_status_t _status;
+    boost::timer _clock;
+    BufferedAsyncSerial * _comm;
+    static const double _rad2deg = 180.0/3.14159;
+
+    // private methods
+    
+    // send a mavlink message to the comm port
+    void _sendMessage(const mavlink_message_t & msg) {
+        uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+        uint16_t len = mavlink_msg_to_send_buffer(buf, &msg);
+        _comm->write((const char *)buf, len);
+    }
 
 public:
-    MavlinkHilState(const std::string & device, uint32_t baudRate) : count(0), packet_drops(0), chan(MAVLINK_COMM_0), clock() {
-        if (mavlink_comm_0_port == NULL)
+    MavlinkHilState(const uint8_t sysid, const uint8_t compid, const MAV_TYPE type,
+            const std::string & device, const uint32_t baudRate) : 
+        _system(), _status(), _clock(), _comm() {
+          
+        // system
+        _system.sysid = sysid;
+        _system.compid = compid;
+        _system.type = type;
+
+        // start comm
+        try
         {
-            try
-            {
-                mavlink_comm_0_port = new BufferedAsyncSerial(device,baudRate);
-            }
-            catch(const boost::system::system_error & e)
-            {
-                std::cout << "error: " << e.what() << std::endl;
-                exit(1);
-            }
+            _comm = new BufferedAsyncSerial(device,baudRate);
+        }
+        catch(const boost::system::system_error & e)
+        {
+            std::cout << "error: " << e.what() << std::endl;
+            exit(1);
         }
     }
 
     ~MavlinkHilState() {
-        if (mavlink_comm_0_port)
+        if (_comm)
         {
-            delete mavlink_comm_0_port;
-            mavlink_comm_0_port = NULL;
+            delete _comm;
+            _comm = NULL;
         }
     }
     
-    void update() {
+    void send() {
         // attitude states (rad)
         float roll = 1;
         float pitch = 2;
@@ -53,8 +71,8 @@ public:
         float yawRate = 0.3;
 
         // position
-        int32_t lat = 1*rad2deg*1e7;
-        int32_t lon = 2*rad2deg*1e7;
+        int32_t lat = 1*_rad2deg*1e7;
+        int32_t lon = 2*_rad2deg*1e7;
         int16_t alt = 3*1e3;
 
         int16_t vx = 1*1e2;
@@ -65,23 +83,28 @@ public:
         int16_t yacc = 2*1e3;
         int16_t zacc = 3*1e3;
 
-        mavlink_msg_hil_state_send(chan,clock.elapsed(),
-                                   roll,pitch,yaw,
-                                   rollRate,pitchRate,yawRate,
-                                   lat,lon,alt,
-                                   vx,vy,vz,
-                                   xacc,yacc,zacc);
+        mavlink_message_t msg;
+        mavlink_msg_hil_state_pack(_system.sysid, _system.compid, &msg, 
+            _clock.elapsed(),
+            roll,pitch,yaw,
+            rollRate,pitchRate,yawRate,
+            lat,lon,alt,
+            vx,vy,vz,
+            xacc,yacc,zacc);
+        _sendMessage(msg);
+    }
+
+    void receive() {
 
         // receive messages
         mavlink_message_t msg;
-        mavlink_status_t status;
-
-        while(comm_get_available(MAVLINK_COMM_0))
+        while(_comm->available())
         {
-            uint8_t c = comm_receive_ch(MAVLINK_COMM_0);
+            uint8_t c = 0;
+            if (!_comm->read((char*)&c,1)) return;
 
             // try to get new message
-            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&status))
+            if(mavlink_parse_char(MAVLINK_COMM_0,c,&msg,&_status))
             {
                 switch(msg.msgid)
                 {
@@ -107,9 +130,6 @@ public:
 
                 }
             }
-
-            // update packet drop counter
-            packet_drops += status.packet_rx_drop_count;
         }
     }
 };
@@ -125,9 +145,11 @@ int main (int argc, char const* argv[])
 
     std::cout << "device: " << device << std::endl;
     std::cout << "baud: " << baud << std::endl;
-    MavlinkHilState test(device,baud); 
+    MavlinkHilState test(0,0,MAV_TYPE_GENERIC,device,baud); 
+
     while(1) {
-        test.update();
+        test.send();
+        test.receive();
         boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
     }
     return 0;

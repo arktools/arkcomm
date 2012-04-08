@@ -14,20 +14,33 @@ set(LIBRARY_SOVERSION "0.0.0")
 # third party libraries
 set(BOOST_REQUIRED_VERSION 1.4.2)
 set(SIMGEAR_REQUIRED_VERSION 2.7.0)
-set(MAVLINK_REQUIRED_VERSION 1.0.3)
+set(MAVLINK_REQUIRED_VERSION 1.0.4)
 
-# md5 check sums
-set(SIMGEAR_MD5 fcb8eac3355778904b2d11e487033e4b)
-set(MAVLINK_MD5 ae9fe71792fc4406c91a5a272d6b28b8)
+# tags
+set(SIMGEAR_TAG 43ab2b6ecb31fb6ca72f3cfdb4395b352a95e365)
+set(MAVLINK_TAG 112cad9a4f6dddd0e65472fdc2a0956ab39da0e6)
 
 # options
 option(WITH_BUILD_DEPS "Build dependencies." OFF)
 option(WITH_BUILD_STATIC "Prefer static linking." ON)
 option(WITH_MAVLINK "Build with mavlink support." ON)
-option(WITH_FLIGHTGEAR "Build with flightgear support." ON)
+option(WITH_FLIGHTGEAR "Build with flightgear support." OFF)
 option(WITH_BUILD_SHARED "Build the shared library." OFF)
 option(WITH_BUILD_TESTS "Build tests." OFF)
 option(WITH_WARNINGS "Enable warnings." OFF)
+
+set(RECURSE_OPTIONS_LIST
+    WITH_BUILD_DEPS
+    WITH_BUILD_STATIC
+    WITH_MAVLINK
+    WITH_FLIGHTGEAR
+    WITH_BUILD_SHARED
+    WITH_BUILD_TESTS
+    WITH_WARNINGS
+    CMAKE_TOOLCHAIN_FILE
+    CMAKE_INSTALL_PREFIX
+    EP_BASE_DIR
+) 
 
 # variables
 set(ROOT_THREAD TRUE CACHE INTERNAL "Is this the top level of the recursion?")
@@ -50,17 +63,21 @@ include(CheckLibraryExists)
 #include(CheckCSourceCompiles)
 include(ExternalProjectWithFilename)
 
+# external projects find path
+if(NOT EP_BASE_DIR)
+    set(EP_BASE_DIR "${CMAKE_BINARY_DIR}/CMakeExternals")
+endif()
+set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
+set(EP_INSTALL_DIR "${EP_BASE_DIR}/Install")
+list(APPEND CMAKE_FIND_ROOT_PATH ${EP_INSTALL_DIR})
+
 # spawn new cmake to build deps
 if (WITH_BUILD_DEPS AND ROOT_THREAD)
-    execute_process(COMMAND ${CMAKE_COMMAND} "${CMAKE_SOURCE_DIR}"
-        "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
-        "-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
-        "-DEP_BASE_DIR=${EP_BASE_DIR}"
-        "-DWITH_BUILD_DEPS=${WITH_BUILD_DEPS}"
-        "-DWITH_BUILD_STATIC=${WITH_BUILD_STATIC}"
-        "-DWITH_MAVLINK=${WITH_MAVLINK}"
-        "-DWITH_FLIGHTGEAR=${WITH_FLIGHTGEAR}"
-        "-DROOT_THREAD=FALSE"
+    set(CMAKE_RECURSE_ARGS "-DROOT_THREAD=FALSE")
+    foreach(OPT ${RECURSE_OPTIONS_LIST})
+        list(APPEND CMAKE_RECURSE_ARGS "-D${OPT}=${${OPT}}")
+    endforeach()
+    execute_process(COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} ${CMAKE_RECURSE_ARGS}
         RESULT_VARIABLE ERROR)
     if (ERROR)
         message(FATAL_ERROR "error, recursing loop returned error code: ${ERROR}")
@@ -69,14 +86,6 @@ if (WITH_BUILD_DEPS AND ROOT_THREAD)
     execute_process(COMMAND ${CMAKE_MAKE_PROGRAM} "-j4" "-f${CMAKE_BINARY_DIR}/Makefile")
     message("** Configuring ${PROJECT_NAME}")
 endif()
-
-# external projects find path
-if(NOT EP_BASE_DIR)
-    set(EP_BASE_DIR "${CMAKE_BINARY_DIR}/CMakeExternals")
-endif()
-set_property(DIRECTORY PROPERTY EP_BASE ${EP_BASE_DIR})
-set(EP_INSTALL_DIR "${EP_BASE_DIR}/Install")
-list(APPEND CMAKE_FIND_ROOT_PATH ${EP_INSTALL_DIR})
 
 # prefer static packages if building static library
 message("** Finding libraries")
@@ -96,15 +105,15 @@ if (ROOT_THREAD)
     set(REQUIRED_IF_ROOT_THREAD "REQUIRED")
 endif()
 if (WIN32)
-    find_package(Boost 1.40.0 REQUIRED COMPONENTS thread_win32-mt system-mt)
+    find_package(Boost ${BOOST_REQUIRED_VERSION} REQUIRED COMPONENTS thread_win32-mt system-mt)
 else()
-    find_package(Boost 1.40.0 REQUIRED COMPONENTS thread-mt system-mt)
+    find_package(Boost ${BOOST_REQUIRED_VERSION} REQUIRED COMPONENTS thread-mt system-mt)
 endif()
 if (WITH_FLIGHTGEAR)
     find_package(SimGear ${SIMGEAR_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD} COMPONENTS io math timing debug)
 endif()
 find_package(Threads REQUIRED)
-find_package(MAVLink 1.0.0 ${REQUIRED_IF_ROOT_THREAD})
+find_package(MAVLink ${MAVLINK_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD})
 
 # build dependencies
 if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
@@ -120,9 +129,8 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
         ExternalProjectWithFilename_Add(mavlink
-            URL https://github.com/mavlink/mavlink/tarball/${MAVLINK_REQUIRED_VERSION}
-            URL_MD5 ${MAVLINK_MD5}
-            FILENAME mavlink-${MAVLINK_MD5}.tar.gz
+            URL http://nodeload.github.com/mavlink/mavlink/tarball/${MAVLINK_TAG}
+            FILENAME mavlink-${MAVLINK_TAG}.tar.gz
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${EP_INSTALL_DIR}
@@ -131,12 +139,11 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_FLIGHTGEAR AND (NOT SIMGEAR_FOUND))
         ExternalProjectWithFilename_Add(simgear
-            URL https://gitorious.org/fg/jgopperts-simgear/archive-tarball/mingw-fix
-            URL_MD5 
-            FILENAME jgoppert-jgopperts-simgear-mingw-fix.tar.gz
-            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DSIMGEAR_HEADLESS=ON"
+            URL http://gitorious.org/fg/jgopperts-simgear/archive-tarball/${SIMGEAR_TAG}
+            FILENAME jgoppert-jgopperts-simgear-${SIMGEAR_TAG}.tar.gz
+            CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS} "-DCMAKE_FIND_ROOT=/opt/local" "-DSIMGEAR_HEADLESS=ON" "-DENABLE_TESTS=OFF"
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
-            INSTALL_DIR ${EP_INSTALL_DIR}
+            INSTALL_DIR ${E_INSTALL_DIR}
            )
     endif()
 
@@ -157,6 +164,9 @@ install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION include/${PROJECT_NAME} C
 if (MINGW)
     add_definitions(-D_WIN32_WINNT=0x0501)
     add_definitions(-DBOOST_THREAD_USE_LIB)
+elseif(APPLE)
+    set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architectures for OSX" FORCE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.5 -ftree-vectorize -fvisibility-inlines-hidden" CACHE STRING "Flags used by the compiler during all build types." FORCE)
 endif()
 
 if (WITH_WARNINGS)
@@ -189,7 +199,7 @@ set(arkcommHeaders
 
 if (MAVLINK_FOUND)
     list(APPEND arkcommSources
-        src/asio_mavlink_bridge.cpp
+        #src/asio_mavlink_bridge.cpp
         )
     list(APPEND arkcommHeaders
         src/asio_mavlink_bridge.h
