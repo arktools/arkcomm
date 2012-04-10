@@ -196,15 +196,6 @@ set(arkcommSources
 set(arkcommHeaders
         src/AsyncSerial.hpp)
 
-if (MAVLINK_FOUND)
-    list(APPEND arkcommSources
-        #src/asio_mavlink_bridge.cpp
-        )
-    list(APPEND arkcommHeaders
-        src/asio_mavlink_bridge.h
-        )
-endif()
-
 if (WITH_FLIGHTGEAR)
     list(APPEND arkcommSources
         src/FlightGearComm.cpp
