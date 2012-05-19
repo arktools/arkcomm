@@ -6,7 +6,7 @@
 //
 // This file is in the Public Domain, and comes with no warranty.
 //
-// $Id: net_ctrls.hxx,v 1.24 2006-01-20 17:19:02 ehofman Exp $
+// $Id$
 
 
 #ifndef _NET_CTRLS_HXX

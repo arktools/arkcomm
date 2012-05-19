@@ -6,7 +6,7 @@
 //
 // This file is in the Public Domain, and comes with no warranty.
 //
-// $Id: net_fdm.hxx,v 1.24 2006-03-21 18:51:57 curt Exp $
+// $Id$
 
 
 #ifndef _NET_FDM_HXX

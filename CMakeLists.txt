@@ -110,7 +110,8 @@ else()
     find_package(Boost ${BOOST_REQUIRED_VERSION} REQUIRED COMPONENTS thread-mt system-mt)
 endif()
 if (WITH_FLIGHTGEAR)
-    find_package(SimGear ${SIMGEAR_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD} COMPONENTS io math timing debug)
+    find_package(SimGear ${SIMGEAR_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD} COMPONENTS
+        environment nasal bucket route io serial math props structure timing xml misc threads debug magvar)
 endif()
 find_package(Threads REQUIRED)
 find_package(MAVLink ${MAVLINK_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD})
@@ -191,7 +192,14 @@ if (MINGW)
 endif()
 
 set(arkcommSources
-        src/AsyncSerial.cpp)
+        src/AsyncSerial.cpp
+        )
+
+add_executable(CommTest 
+    src/CommTest.cpp
+    src/protocol.cxx
+    )
+target_link_libraries(CommTest ${SIMGEAR_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 set(arkcommHeaders
         src/AsyncSerial.hpp)
