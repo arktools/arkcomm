@@ -111,7 +111,21 @@ else()
 endif()
 if (WITH_FLIGHTGEAR)
     find_package(SimGear ${SIMGEAR_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD} COMPONENTS
-        environment nasal bucket route io serial math props structure timing xml misc threads debug magvar)
+        #nasal
+        #bucket
+        #route
+        io
+        serial
+        #math
+        #props
+        structure
+        #timing
+        #xml
+        #misc
+        threads
+        debug
+        #magvar
+        )
 endif()
 find_package(Threads REQUIRED)
 find_package(MAVLink ${MAVLINK_REQUIRED_VERSION} ${REQUIRED_IF_ROOT_THREAD})
