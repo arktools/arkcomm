@@ -144,8 +144,8 @@ if (WITH_BUILD_DEPS AND (NOT ROOT_THREAD) )
 
     if (WITH_MAVLINK AND (NOT MAVLINK_FOUND))
         ExternalProjectWithFilename_Add(mavlink
-            URL http://nodeload.github.com/mavlink/mavlink/tarball/${MAVLINK_TAG}
-            FILENAME mavlink-${MAVLINK_TAG}.tar.gz
+            URL http://nodeload.github.com/mavlink/mavlink/zip/${MAVLINK_TAG}
+            FILENAME mavlink-${MAVLINK_TAG}.zip
             CMAKE_ARGS ${CMAKE_EP_DEFAULT_ARGS}
             INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} DESTDIR=${EP_INSTALL_DIR} install
             INSTALL_DIR ${EP_INSTALL_DIR}
