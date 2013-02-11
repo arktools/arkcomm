@@ -197,7 +197,7 @@ endif()
 
 # project wide flags
 include_directories(src ${CMAKE_BINARY_DIR})
-include_directories(${Boost_INCLUDE_DIRS} ${MAVLINK_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS} ${MAVLINK_INCLUDE_DIRS} ${SIMGEAR_INCLUDE_DIRS})
 
 # librarys
 set(arkcommLibs ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
